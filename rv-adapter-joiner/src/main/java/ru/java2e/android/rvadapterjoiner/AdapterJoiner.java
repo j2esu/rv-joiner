@@ -15,34 +15,53 @@ import java.util.List;
  */
 public class AdapterJoiner {
 
-	private Adapter adapter;
+	interface JoinableWrapper {
+
+		RecyclerView.Adapter getAdapter();
+
+		int getTypeCount();
+
+		/**
+		 * Get type constant by type index
+		 */
+		int getType(int typeIndex);
+
+		/**
+		 * Get type index by type constant
+		 */
+		int getTypeIndex(int type);
+
+	}
+
+	private AdapterJoiner.Adapter adapter;
+	private boolean autoUpdate = true;
 
 	//perform only basic updates by now
 	RecyclerView.AdapterDataObserver adapterDataObserver = new RecyclerView.AdapterDataObserver() {
 
 		@Override
 		public void onChanged() {
-			notifyDataSetChanged();
+			updateData();
 		}
 
 		@Override
 		public void onItemRangeChanged(int positionStart, int itemCount) {
-			notifyDataSetChanged();
+			updateData();
 		}
 
 		@Override
 		public void onItemRangeInserted(int positionStart, int itemCount) {
-			notifyDataSetChanged();
+			updateData();
 		}
 
 		@Override
 		public void onItemRangeRemoved(int positionStart, int itemCount) {
-			notifyDataSetChanged();
+			updateData();
 		}
 
 		@Override
 		public void onItemRangeMoved(int fromPosition, int toPosition, int itemCount) {
-			notifyDataSetChanged();
+			updateData();
 		}
 
 	};
@@ -50,30 +69,32 @@ public class AdapterJoiner {
 	/**
 	 * @param autoUpdate if true, joiner will listen for data updates in joined adapters,
 	 *                   otherwise you have to call notify method manually
-	 *                   (ex. {@link #notifyDataSetChanged()})
-	 * @param wrappers can be {@link AdapterWrapper}, or it subclass (ex. {@link LayoutWrapper})
+	 *                   (ex. {@link #updateData()})
 	 */
-	public AdapterJoiner(boolean autoUpdate, AdapterWrapper... wrappers) {
-		adapter = new Adapter(wrappers);
-		if (autoUpdate) {
-			for (AdapterWrapper wrapper : wrappers) {
-				wrapper.getAdapter().registerAdapterDataObserver(adapterDataObserver);
-			}
-		}
+	public AdapterJoiner(boolean autoUpdate) {
+		adapter = new Adapter();
+		this.autoUpdate = autoUpdate;
 	}
 
 	/**
-	 * The same as {@link #AdapterJoiner(boolean, AdapterWrapper...)} with auto update ON.
+	 * The same as {@link #AdapterJoiner(boolean)} with auto update ON.
 	 */
-	public AdapterJoiner(AdapterWrapper... wrappers) {
-		this(true, wrappers);
+	public AdapterJoiner() {
+		this(true);
+	}
+
+	public void add(JoinableWrapper wrapper) {
+		adapter.addToStructure(wrapper);
+		if (autoUpdate) {
+			wrapper.getAdapter().registerAdapterDataObserver(adapterDataObserver);
+		}
 	}
 
 	/**
 	 * Should be called after data in joined adapter was changed. Called automatically, if
 	 * auto update ON.
 	 */
-	public void notifyDataSetChanged() {
+	public void updateData() {
 		adapter.onDataSetChanged();
 		adapter.notifyDataSetChanged();
 	}
@@ -116,27 +137,32 @@ public class AdapterJoiner {
 	 */
 	private static class Adapter extends RecyclerView.Adapter {
 
-		private AdapterWrapper[] wrappers;
+		private List<JoinableWrapper> wrappers = new ArrayList<>();
 
 		//update once in constructor
 		//this lists "maps" joined type (position) on different values
 		private List<Integer> joinedTypeToRealType = new ArrayList<>();
-		private List<AdapterWrapper> joinedTypeToWrapper = new ArrayList<>();
+		private List<JoinableWrapper> joinedTypeToWrapper = new ArrayList<>();
 
 		//update after every data set change
 		//this lists "maps" joined position (position) different values
 		private int itemCount = 0;
 		private List<Integer> joinedPosToJoinedType = new ArrayList<>();
 		private List<Integer> joinedPosToRealPos = new ArrayList<>();
-		private List<AdapterWrapper> joinedPosToWrapper = new ArrayList<>();
+		private List<JoinableWrapper> joinedPosToWrapper = new ArrayList<>();
 
-		public Adapter(AdapterWrapper... wrappers) {
-			this.wrappers = wrappers;
-			postConstruct();
+		private void addToStructure(JoinableWrapper wrapper) {
+			wrappers.add(wrapper);
+			onStructureChanged();
+			onDataSetChanged();//new wrapper data added
 		}
 
-		private void postConstruct() {
-			for (AdapterWrapper wrapper : wrappers) {
+		//todo remove
+
+		private void onStructureChanged() {
+			joinedTypeToWrapper.clear();
+			joinedTypeToRealType.clear();
+			for (JoinableWrapper wrapper : wrappers) {
 				for (int i = 0; i < wrapper.getTypeCount(); i++) {
 					joinedTypeToWrapper.add(wrapper);
 					joinedTypeToRealType.add(wrapper.getType(i));
@@ -150,7 +176,7 @@ public class AdapterJoiner {
 			joinedPosToRealPos.clear();
 			joinedPosToWrapper.clear();
 			int prevTypeCount = 0;
-			for (AdapterWrapper wrapper : wrappers) {
+			for (JoinableWrapper wrapper : wrappers) {
 				for (int i = 0; i < wrapper.getAdapter().getItemCount(); i++) {
 					itemCount++;
 					joinedPosToJoinedType.add(prevTypeCount +

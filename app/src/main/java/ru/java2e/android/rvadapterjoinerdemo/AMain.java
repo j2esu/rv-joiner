@@ -27,14 +27,13 @@ public class AMain extends AppCompatActivity {
 		RecyclerView rv = (RecyclerView) findViewById(R.id.rv);
 		notesAdapter = new NotesAdapter();
 		issuesAdapter = new IssuesAdapter();
-		AdapterJoiner joiner = new AdapterJoiner(
-				new AdapterWrapper(new LayoutWrapper(R.layout.notes_title), null),
-				new AdapterWrapper(notesAdapter, null),
-				new AdapterWrapper(new LayoutWrapper(R.layout.issues_title), null),
-				new AdapterWrapper(issuesAdapter, new int[] {
-						IssuesAdapter.VIEW_TYPE_TASK, IssuesAdapter.VIEW_TYPE_BUG
-				})
-		);
+		AdapterJoiner joiner = new AdapterJoiner();
+		joiner.add(new LayoutWrapper(R.layout.notes_title, null));
+		joiner.add(new AdapterWrapper(notesAdapter, null));
+		joiner.add(new LayoutWrapper(R.layout.issues_title, null));
+		joiner.add(new AdapterWrapper(issuesAdapter, new int[] {
+				IssuesAdapter.VIEW_TYPE_TASK, IssuesAdapter.VIEW_TYPE_BUG
+		}));
 		rv.setAdapter(joiner.getAdapter());
 		rv.setLayoutManager(new LinearLayoutManager(this));
 		updateData();

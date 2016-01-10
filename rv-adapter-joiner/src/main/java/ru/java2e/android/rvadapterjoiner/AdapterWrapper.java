@@ -8,7 +8,7 @@ import android.util.SparseArray;
 /**
  * Wraps {@link RecyclerView.Adapter} to use in {@link AdapterJoiner}.
  */
-public class AdapterWrapper {
+public class AdapterWrapper implements AdapterJoiner.JoinableWrapper {
 
 	private RecyclerView.Adapter adapter;
 	private int[] types;
@@ -33,25 +33,23 @@ public class AdapterWrapper {
 		}
 	}
 
-	protected RecyclerView.Adapter getAdapter() {
+	@Override
+	public RecyclerView.Adapter getAdapter() {
 		return adapter;
 	}
 
-	protected int getTypeCount() {
+	@Override
+	public int getTypeCount() {
 		return types.length;
 	}
 
-	/**
-	 * Get type constant by type index
-	 */
-	protected int getType(int typeIndex) {
+	@Override
+	public int getType(int typeIndex) {
 		return types[typeIndex];
 	}
 
-	/**
-	 * Get type index by type constant
-	 */
-	protected int getTypeIndex(int type) {
+	@Override
+	public int getTypeIndex(int type) {
 		return typesToIndex.get(type);
 	}
 
