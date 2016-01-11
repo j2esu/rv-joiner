@@ -136,6 +136,15 @@ public class RvJoiner {
 		adapter.setHasStableIds(hasStableIds);
 	}
 
+	/**
+	 * @param joinedPosition total joined position (form 0 to {@link #getItemCount()}  - 1)
+	 * @return object which wraps info, or null if position doesn't exist
+	 * @see su.j2e.rvjoiner.RvJoiner.ItemInfo
+	 */
+	public ItemInfo getItemInfo(int joinedPosition) {
+		return adapter.getItemInfoObject(joinedPosition);
+	}
+
 	/*
 	Actual joiner adapter implementation.
 	Joined position and joined type - values in new composite adapter.
@@ -160,13 +169,42 @@ public class RvJoiner {
 		private List<Integer> joinedPosToRealPos = new ArrayList<>();
 		private List<Joinable> joinedPosToJoinable = new ArrayList<>();
 
+		@Override
+		public ViewHolder onCreateViewHolder(ViewGroup parent, int joinedType) {
+			return joinedTypeToJoinable.get(joinedType).getAdapter()
+					.onCreateViewHolder(parent, joinedTypeToRealType.get(joinedType));
+		}
+
+		@Override
+		@SuppressWarnings("unchecked")
+		public void onBindViewHolder(ViewHolder holder, int joinedPosition) {
+			joinedPosToJoinable.get(joinedPosition).getAdapter()
+					.onBindViewHolder(holder, joinedPosToRealPos.get(joinedPosition));
+		}
+
+		@Override
+		public long getItemId(int joinedPosition) {
+			return joinedPosToJoinable.get(joinedPosition).getAdapter()
+					.getItemId(joinedPosToRealPos.get(joinedPosition));
+		}
+
+		@Override
+		public int getItemCount() {
+			return itemCount;
+		}
+
+		@Override
+		public int getItemViewType(int joinedPosition) {
+			return joinedPosToJoinedType.get(joinedPosition);
+		}
+
 		private void addToStructure(Joinable joinable) {
 			joinables.add(joinable);
 			onStructureChanged();
 			onDataSetChanged();//new joinable adds new data
 		}
 
-		//todo remove + check onInflateComplete
+		//todo remove method
 
 		/**
 		 * Should be called after structure changed
@@ -204,33 +242,51 @@ public class RvJoiner {
 			}
 		}
 
-		@Override
-		public ViewHolder onCreateViewHolder(ViewGroup parent, int joinedType) {
-			return joinedTypeToJoinable.get(joinedType).getAdapter()
-					.onCreateViewHolder(parent, joinedTypeToRealType.get(joinedType));
+		/**
+		 * Can return null, if position doesn't exist.
+		 */
+		private ItemInfo getItemInfoObject(int joinedPosition) {
+			//todo cache this objects
+			try {
+				return new ItemInfo(
+						joinedPosition,
+						joinedPosToRealPos.get(joinedPosition),
+						joinedPosToJoinable.get(joinedPosition),
+						joinedPosToJoinedType.get(joinedPosition),
+						joinedTypeToRealType.get(joinedPosToJoinedType.get(joinedPosition))
+				);
+			} catch (IndexOutOfBoundsException ex) {
+				return null;
+			}
 		}
 
-		@Override
-		@SuppressWarnings("unchecked")
-		public void onBindViewHolder(ViewHolder holder, int joinedPosition) {
-			joinedPosToJoinable.get(joinedPosition).getAdapter()
-					.onBindViewHolder(holder, joinedPosToRealPos.get(joinedPosition));
-		}
+	}
 
-		@Override
-		public long getItemId(int joinedPosition) {
-			return joinedPosToJoinable.get(joinedPosition).getAdapter()
-					.getItemId(joinedPosToRealPos.get(joinedPosition));
-		}
+	/**
+	 * Class to wrap together extra item info. You can access info using public final fields.
+	 * <pre>
+	 *     {@link RvJoiner.ItemInfo#joinedPosition} - total position in joiner
+	 *     {@link RvJoiner.ItemInfo#realPosition} - position in real adapter which handles item
+	 *     {@link RvJoiner.ItemInfo#joinable} - joinable which handles item
+	 *     {@link RvJoiner.ItemInfo#joinedType} - total type in joiner
+	 *     {@link RvJoiner.ItemInfo#realType} - type in real adapter which handles item
+	 * </pre>
+	 */
+	public static class ItemInfo {
 
-		@Override
-		public int getItemCount() {
-			return itemCount;
-		}
+		public final int joinedPosition;
+		public final int realPosition;
+		public final Joinable joinable;
+		public final int joinedType;
+		public final int realType;
 
-		@Override
-		public int getItemViewType(int joinedPosition) {
-			return joinedPosToJoinedType.get(joinedPosition);
+		private ItemInfo(int joinedPosition, int realPosition, Joinable joinable, int joinedType,
+						 int realType) {
+			this.joinedPosition = joinedPosition;
+			this.realPosition = realPosition;
+			this.joinable = joinable;
+			this.joinedType = joinedType;
+			this.realType = realType;
 		}
 
 	}

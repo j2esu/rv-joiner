@@ -12,9 +12,7 @@ import android.view.ViewGroup;
  */
 public class JoinableLayout implements RvJoiner.Joinable {
 
-	private static final int TYPE = 0;
-
-	interface Callback {
+	public interface Callback {
 
 		/**
 		 * Runs after layout was inflated. You can use it to perform extra initialization,
@@ -27,9 +25,16 @@ public class JoinableLayout implements RvJoiner.Joinable {
 	}
 
 	private JoinableLayout.Adapter adapter;
+	private int itemType = 0;
 
-	public JoinableLayout(@LayoutRes int layoutResId, @Nullable Callback callback) {
+	/**
+	 * @param layoutResId layout resource for view inflating
+	 * @param itemType type constant, or 0, or other value if you don't need it
+	 * @param callback callback if you want to customize view after inflating
+	 */
+	public JoinableLayout(@LayoutRes int layoutResId, int itemType, @Nullable Callback callback) {
 		adapter = new Adapter(layoutResId, callback);
+		this.itemType = itemType;
 	}
 
 	@Override
@@ -44,7 +49,7 @@ public class JoinableLayout implements RvJoiner.Joinable {
 
 	@Override
 	public int getType(int typeIndex) {
-		return TYPE;//doesn't matter index (we have only one)
+		return itemType;//doesn't matter index (we have only one)
 	}
 
 	@Override

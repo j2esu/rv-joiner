@@ -2,4 +2,7 @@
 	<string name="app_name">Rv Joiner Demo</string>
 	<string name="notes_title">Notes</string>
 	<string name="issues_title">Issues</string>
+	<string name="footer_btn_text">Clickable</string>
+	<string name="menu_linear_text">Linear</string>
+	<string name="menu_grid_text">Grid</string>
 </resources>

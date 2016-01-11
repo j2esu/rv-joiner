@@ -11,7 +11,7 @@
 	tools:context="ru.team2e.adapterjoinerdemo.AMain">
 
 	<android.support.v7.widget.RecyclerView
-		android:id="@+id/rv"
+		android:id="@+id/recycler_view"
 		android:layout_width="match_parent"
 		android:layout_height="match_parent"
 		/>
