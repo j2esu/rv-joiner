@@ -6,9 +6,9 @@ import android.support.v7.widget.RecyclerView;
 import android.util.SparseArray;
 
 /**
- * Wraps {@link RecyclerView.Adapter} to use in {@link AdapterJoiner}.
+ * Wraps {@link RecyclerView.Adapter} to use in {@link RvJoiner}.
  */
-public class AdapterWrapper implements AdapterJoiner.JoinableWrapper {
+public class AdapterWrapper implements RvJoiner.Joinable {
 
 	private RecyclerView.Adapter adapter;
 	private int[] types;

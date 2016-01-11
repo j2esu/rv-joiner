@@ -8,17 +8,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Joins adapters ({@link RecyclerView.Adapter}) into single adapter via {@link #add(JoinableWrapper)}.
+ * Joins adapters ({@link RecyclerView.Adapter}) into single adapter via {@link #add(Joinable)}.
  * Use {@link #getAdapter()} to get adapter for {@link RecyclerView}, but don't use other methods
  * of this adapter directly, or use carefully (correct work is not guaranteed).
  * Use methods in joiner class as public interface.
  */
-public class AdapterJoiner {
+public class RvJoiner {
 
 	/**
-	 * Interface required to be used in {@link AdapterJoiner}
+	 * Interface required for object to be used in {@link RvJoiner}
 	 */
-	interface JoinableWrapper {
+	interface Joinable {
 
 		RecyclerView.Adapter getAdapter();
 
@@ -36,7 +36,7 @@ public class AdapterJoiner {
 
 	}
 
-	private AdapterJoiner.Adapter adapter;
+	private RvJoiner.Adapter adapter;
 	private boolean autoUpdate = true;
 
 	//perform only basic updates by now
@@ -74,22 +74,22 @@ public class AdapterJoiner {
 	 *                   otherwise you have to call notify method manually
 	 *                   (ex. {@link #updateData()})
 	 */
-	public AdapterJoiner(boolean autoUpdate) {
+	public RvJoiner(boolean autoUpdate) {
 		adapter = new Adapter();
 		this.autoUpdate = autoUpdate;
 	}
 
 	/**
-	 * The same as {@link #AdapterJoiner(boolean)} with auto update ON.
+	 * The same as {@link #RvJoiner(boolean)} with auto update ON.
 	 */
-	public AdapterJoiner() {
+	public RvJoiner() {
 		this(true);
 	}
 
-	public void add(JoinableWrapper wrapper) {
-		adapter.addToStructure(wrapper);
+	public void add(Joinable joinable) {
+		adapter.addToStructure(joinable);
 		if (autoUpdate) {
-			wrapper.getAdapter().registerAdapterDataObserver(adapterDataObserver);
+			joinable.getAdapter().registerAdapterDataObserver(adapterDataObserver);
 		}
 	}
 
@@ -140,73 +140,80 @@ public class AdapterJoiner {
 	 */
 	private static class Adapter extends RecyclerView.Adapter {
 
-		private List<JoinableWrapper> wrappers = new ArrayList<>();
+		private List<Joinable> joinables = new ArrayList<>();
 
 		//update once in constructor
 		//this lists "maps" joined type (position) on different values
 		private List<Integer> joinedTypeToRealType = new ArrayList<>();
-		private List<JoinableWrapper> joinedTypeToWrapper = new ArrayList<>();
+		private List<Joinable> joinedTypeToJoinable = new ArrayList<>();
 
 		//update after every data set change
 		//this lists "maps" joined position (position) different values
 		private int itemCount = 0;
 		private List<Integer> joinedPosToJoinedType = new ArrayList<>();
 		private List<Integer> joinedPosToRealPos = new ArrayList<>();
-		private List<JoinableWrapper> joinedPosToWrapper = new ArrayList<>();
+		private List<Joinable> joinedPosToJoinable = new ArrayList<>();
 
-		private void addToStructure(JoinableWrapper wrapper) {
-			wrappers.add(wrapper);
+		private void addToStructure(Joinable joinable) {
+			joinables.add(joinable);
 			onStructureChanged();
-			onDataSetChanged();//new wrapper data added
+			onDataSetChanged();//new joinable adds new data
 		}
 
 		//todo remove + check onInflateComplete
 
+		/**
+		 * Should be called after structure changed
+		 * (adding, removing {@link RvJoiner.Joinable} etc.).
+		 */
 		private void onStructureChanged() {
-			joinedTypeToWrapper.clear();
+			joinedTypeToJoinable.clear();
 			joinedTypeToRealType.clear();
-			for (JoinableWrapper wrapper : wrappers) {
-				for (int i = 0; i < wrapper.getTypeCount(); i++) {
-					joinedTypeToWrapper.add(wrapper);
-					joinedTypeToRealType.add(wrapper.getType(i));
+			for (Joinable joinable : joinables) {
+				for (int i = 0; i < joinable.getTypeCount(); i++) {
+					joinedTypeToJoinable.add(joinable);
+					joinedTypeToRealType.add(joinable.getType(i));
 				}
 			}
 		}
 
+		/**
+		 * Should be called after total adapter data set changed.
+		 */
 		private void onDataSetChanged() {
 			itemCount = 0;
 			joinedPosToJoinedType.clear();
 			joinedPosToRealPos.clear();
-			joinedPosToWrapper.clear();
+			joinedPosToJoinable.clear();
 			int prevTypeCount = 0;
-			for (JoinableWrapper wrapper : wrappers) {
-				for (int i = 0; i < wrapper.getAdapter().getItemCount(); i++) {
+			for (Joinable joinable : joinables) {
+				for (int i = 0; i < joinable.getAdapter().getItemCount(); i++) {
 					itemCount++;
 					joinedPosToJoinedType.add(prevTypeCount +
-							wrapper.getTypeIndex(wrapper.getAdapter().getItemViewType(i)));
+							joinable.getTypeIndex(joinable.getAdapter().getItemViewType(i)));
 					joinedPosToRealPos.add(i);
-					joinedPosToWrapper.add(wrapper);
+					joinedPosToJoinable.add(joinable);
 				}
-				prevTypeCount += wrapper.getTypeCount();
+				prevTypeCount += joinable.getTypeCount();
 			}
 		}
 
 		@Override
 		public ViewHolder onCreateViewHolder(ViewGroup parent, int joinedType) {
-			return joinedTypeToWrapper.get(joinedType).getAdapter()
+			return joinedTypeToJoinable.get(joinedType).getAdapter()
 					.onCreateViewHolder(parent, joinedTypeToRealType.get(joinedType));
 		}
 
 		@Override
 		@SuppressWarnings("unchecked")
 		public void onBindViewHolder(ViewHolder holder, int joinedPosition) {
-			joinedPosToWrapper.get(joinedPosition).getAdapter()
+			joinedPosToJoinable.get(joinedPosition).getAdapter()
 					.onBindViewHolder(holder, joinedPosToRealPos.get(joinedPosition));
 		}
 
 		@Override
 		public long getItemId(int joinedPosition) {
-			return joinedPosToWrapper.get(joinedPosition).getAdapter()
+			return joinedPosToJoinable.get(joinedPosition).getAdapter()
 					.getItemId(joinedPosToRealPos.get(joinedPosition));
 		}
 

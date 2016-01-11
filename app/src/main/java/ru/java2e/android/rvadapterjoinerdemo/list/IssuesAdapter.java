@@ -32,9 +32,9 @@ public class IssuesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 	public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
 		switch (viewType) {
 			case VIEW_TYPE_TASK:
-				return new TaskVH(parent);
+				return new TaskVh(parent);
 			case VIEW_TYPE_BUG:
-				return new BugVH(parent);
+				return new BugVh(parent);
 			default:
 				throw new RuntimeException("Unknown view type");
 		}
@@ -44,10 +44,10 @@ public class IssuesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 	public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
 		switch (getItemViewType(position)) {
 			case VIEW_TYPE_TASK:
-				((TaskVH) holder).bind((Task) issues.get(position));
+				((TaskVh) holder).bind((Task) issues.get(position));
 				break;
 			case VIEW_TYPE_BUG:
-				((BugVH) holder).bind((Bug) issues.get(position));
+				((BugVh) holder).bind((Bug) issues.get(position));
 				break;
 			default:
 				throw new RuntimeException("Unknown view type");
@@ -71,11 +71,11 @@ public class IssuesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 		}
 	}
 
-	protected class TaskVH extends RecyclerView.ViewHolder {
+	protected class TaskVh extends RecyclerView.ViewHolder {
 
 		private final TextView descTv;
 
-		private TaskVH(ViewGroup parent) {
+		private TaskVh(ViewGroup parent) {
 			super(LayoutInflater.from(parent.getContext())
 					.inflate(R.layout.task_item, parent, false));
 			descTv = (TextView) itemView.findViewById(R.id.task_item_desc);
@@ -87,11 +87,11 @@ public class IssuesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 
 	}
 
-	protected class BugVH extends RecyclerView.ViewHolder {
+	protected class BugVh extends RecyclerView.ViewHolder {
 
 		private final TextView descTv;
 
-		private BugVH(ViewGroup parent) {
+		private BugVh(ViewGroup parent) {
 			super(LayoutInflater.from(parent.getContext())
 					.inflate(R.layout.bug_item, parent, false));
 			descTv = (TextView) itemView.findViewById(R.id.bug_item_desc);

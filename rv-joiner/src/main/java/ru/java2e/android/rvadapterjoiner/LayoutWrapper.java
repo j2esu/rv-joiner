@@ -8,9 +8,9 @@ import android.view.View;
 import android.view.ViewGroup;
 
 /**
- * Wraps layout to use in {@link AdapterJoiner}.
+ * Wraps layout to use in {@link RvJoiner}.
  */
-public class LayoutWrapper implements AdapterJoiner.JoinableWrapper {
+public class LayoutWrapper implements RvJoiner.Joinable {
 
 	private static final int TYPE = 0;
 
@@ -52,7 +52,7 @@ public class LayoutWrapper implements AdapterJoiner.JoinableWrapper {
 		return 0;//the only type, so first index
 	}
 
-	private static class Adapter extends RecyclerView.Adapter<Adapter.LayoutVH> {
+	private static class Adapter extends RecyclerView.Adapter<Adapter.LayoutVh> {
 
 		private int layoutResId;
 
@@ -70,24 +70,24 @@ public class LayoutWrapper implements AdapterJoiner.JoinableWrapper {
 		}
 
 		@Override
-		public LayoutVH onCreateViewHolder(ViewGroup parent, int viewType) {
+		public LayoutVh onCreateViewHolder(ViewGroup parent, int viewType) {
 			View view = LayoutInflater.from(parent.getContext())
 					.inflate(layoutResId, parent, false);
 			callback.onInflateComplete(view, parent);
-			return new LayoutVH(view);
+			return new LayoutVh(view);
 		}
 
 		@Override
-		public void onBindViewHolder(LayoutVH holder, int position) {}
+		public void onBindViewHolder(LayoutVh holder, int position) {}
 
 		@Override
 		public int getItemCount() {
 			return 1;
 		}
 
-		protected static class LayoutVH extends RecyclerView.ViewHolder {
+		protected static class LayoutVh extends RecyclerView.ViewHolder {
 
-			public LayoutVH(View itemView) {
+			public LayoutVh(View itemView) {
 				super(itemView);
 			}
 

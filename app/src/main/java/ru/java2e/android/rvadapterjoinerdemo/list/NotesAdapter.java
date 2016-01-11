@@ -12,7 +12,7 @@ import ru.java2e.android.rvadapterjoinerdemo.R;
 import ru.java2e.android.rvadapterjoinerdemo.model.Note;
 
 
-public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.NoteVH> {
+public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.NoteVh> {
 
 	private List<Note> notes = new LinkedList<>();
 
@@ -25,12 +25,12 @@ public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.NoteVH> {
 	}
 
 	@Override
-	public NoteVH onCreateViewHolder(ViewGroup parent, int viewType) {
-		return new NoteVH(parent);
+	public NoteVh onCreateViewHolder(ViewGroup parent, int viewType) {
+		return new NoteVh(parent);
 	}
 
 	@Override
-	public void onBindViewHolder(NoteVH holder, int position) {
+	public void onBindViewHolder(NoteVh holder, int position) {
 		holder.bind(notes.get(position));
 	}
 
@@ -39,11 +39,11 @@ public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.NoteVH> {
 		return notes.size();
 	}
 
-	protected class NoteVH extends RecyclerView.ViewHolder {
+	protected class NoteVh extends RecyclerView.ViewHolder {
 
 		private final TextView textTv;
 
-		private NoteVH(ViewGroup parent) {
+		private NoteVh(ViewGroup parent) {
 			super(LayoutInflater.from(parent.getContext())
 					.inflate(R.layout.note_item, parent, false));
 			textTv = (TextView) itemView.findViewById(R.id.note_item_text);
