@@ -1,1 +1,1 @@
-include ':app', ':rv-adapter-joiner'
+include ':app', ':rv-joiner'

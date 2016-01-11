@@ -8,13 +8,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Joins adapters ({@link RecyclerView.Adapter}) into single adapter.
+ * Joins adapters ({@link RecyclerView.Adapter}) into single adapter via {@link #add(JoinableWrapper)}.
  * Use {@link #getAdapter()} to get adapter for {@link RecyclerView}, but don't use other methods
  * of this adapter directly, or use carefully (correct work is not guaranteed).
  * Use methods in joiner class as public interface.
  */
 public class AdapterJoiner {
 
+	/**
+	 * Interface required to be used in {@link AdapterJoiner}
+	 */
 	interface JoinableWrapper {
 
 		RecyclerView.Adapter getAdapter();
@@ -157,7 +160,7 @@ public class AdapterJoiner {
 			onDataSetChanged();//new wrapper data added
 		}
 
-		//todo remove
+		//todo remove + check onInflateComplete
 
 		private void onStructureChanged() {
 			joinedTypeToWrapper.clear();
