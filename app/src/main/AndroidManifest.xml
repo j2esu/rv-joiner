@@ -8,7 +8,7 @@
 		android:label="@string/app_name"
 		android:supportsRtl="true"
 		android:theme="@style/AppTheme">
-		<activity android:name="ru.java2e.android.rvadapterjoinerdemo.AMain">
+		<activity android:name="su.j2e.rvjoinerdemo.AMain">
 			<intent-filter>
 				<action android:name="android.intent.action.MAIN"/>
 
