@@ -24,7 +24,7 @@ public class RvJoiner {
 	/**
 	 * Interface required for object to be used in {@link RvJoiner}
 	 */
-	interface Joinable {
+	public interface Joinable {
 
 		RecyclerView.Adapter getAdapter();
 
@@ -92,6 +92,7 @@ public class RvJoiner {
 		this(true);
 	}
 
+	//todo doc + remove method + cache info
 	public void add(Joinable joinable) {
 		adapter.addToStructure(joinable);
 		if (autoUpdate) {
@@ -203,8 +204,6 @@ public class RvJoiner {
 			onStructureChanged();
 			onDataSetChanged();//new joinable adds new data
 		}
-
-		//todo remove method
 
 		/**
 		 * Should be called after structure changed
