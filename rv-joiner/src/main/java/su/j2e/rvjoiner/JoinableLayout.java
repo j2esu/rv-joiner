@@ -28,13 +28,22 @@ public class JoinableLayout implements RvJoiner.Joinable {
 	private int itemType = 0;
 
 	/**
-	 * @param layoutResId layout resource for view inflating
+	 * @param layoutResId layout resource to inflate view
 	 * @param itemType type constant, or 0, or other value if you don't need it
 	 * @param callback callback if you want to customize view after inflating
 	 */
 	public JoinableLayout(@LayoutRes int layoutResId, int itemType, @Nullable Callback callback) {
 		this.itemType = itemType;
 		adapter = new Adapter(layoutResId, callback);
+	}
+
+	/**
+	 * Simple constructor if you don't need any customization.
+	 * The same as {@link #JoinableLayout(int, int, Callback)} with 0 type and null callback.
+	 * @param layoutResId layout resource to inflate view
+	 */
+	public JoinableLayout(@LayoutRes int layoutResId) {
+		this(layoutResId, 0, null);
 	}
 
 	@Override
