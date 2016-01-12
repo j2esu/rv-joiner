@@ -146,7 +146,7 @@ public class RvJoiner {
 		adapter.onDataSetChanged();
 	}
 
-	//todo other notification methods like updateData(from, to) or smth like this
+	//todo other notification methods like updateData(from, to)
 
 	/**
 	 * @return adapter, which you can set to RecyclerView.
