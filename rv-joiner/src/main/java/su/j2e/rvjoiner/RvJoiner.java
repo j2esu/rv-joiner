@@ -27,10 +27,10 @@ import java.util.List;
  */
 public class RvJoiner {
 
-	private static final String TAG = RvJoiner.class.getName();
-
 	/**
-	 * Interface required for object to be used in {@link RvJoiner}
+	 * Interface required for object to be used in {@link RvJoiner}.
+	 * @see JoinableAdapter
+	 * @see JoinableLayout
 	 */
 	public interface Joinable {
 
@@ -49,6 +49,8 @@ public class RvJoiner {
 		int getTypeIndex(int type);
 
 	}
+
+	private static final String TAG = RvJoiner.class.getName();
 
 	private RvJoiner.Adapter adapter;
 	private boolean autoUpdate = true;
