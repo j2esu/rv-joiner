@@ -18,11 +18,14 @@ public class JoinableAdapter implements RvJoiner.Joinable {
 	 * @param adapter your adapter instance
 	 * @param types array of all your type constants, which you return in
 	 * 				{@link RecyclerView.Adapter#getItemViewType(int)},
-	 *              or null if your adapter have single type
+	 *              or you can pass null for simplicity if your adapter have single type and you
+	 *              have NOT override {@link RecyclerView.Adapter#getItemViewType(int)}
+	 * @throws IllegalArgumentException if types array is empty
 	 */
 	public JoinableAdapter(@NonNull RecyclerView.Adapter adapter, @Nullable int[] types) {
-		this.adapter = adapter;
 		this.types = (types != null ? types : new int[] {0});
+		if (this.types.length <= 0) throw new IllegalArgumentException("Types array can't be empty");
+		this.adapter = adapter;
 		postConstruct();
 	}
 
