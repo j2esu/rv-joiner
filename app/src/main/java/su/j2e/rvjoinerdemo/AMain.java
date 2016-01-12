@@ -9,7 +9,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import ru.java2e.android.rvadapterjoinerdemo.R;
 import su.j2e.rvjoiner.JoinableAdapter;
@@ -20,9 +19,12 @@ import su.j2e.rvjoinerdemo.list.IssuesAdapter;
 import su.j2e.rvjoinerdemo.list.NotesAdapter;
 
 /**
- * Main activity for demo app. Use menu to switch between linear and grid layout manager.
+ * Main activity for demo app.
+ * Use menu to switch between linear and grid layout manager.
+ * Button at bottom of an app tests addition and deleting of Joinables. <b>NOTE:</b> this is not a
+ * way of adding data to the list, update data in adapter to do this! I hope you understand :)
  */
-public class AMain extends AppCompatActivity implements View.OnClickListener {
+public class AMain extends AppCompatActivity implements View.OnClickListener, JoinableLayout.Callback {
 
 	//we need unique (for all joiner) type constants only for extra grid layout manager customization
 	private static final int NOTES_TITLE_TYPE = 21;
@@ -105,7 +107,22 @@ public class AMain extends AppCompatActivity implements View.OnClickListener {
 
 	@Override
 	public void onClick(View v) {
-		Toast.makeText(this, "Click!", Toast.LENGTH_SHORT).show();
+		//add new removable joinable to layout
+		rvJoiner.add(new JoinableLayout(R.layout.removable_item, 0, this));
+		recyclerView.smoothScrollToPosition(rvJoiner.getItemCount());
+	}
+
+	@Override
+	public void onInflateComplete(View view, ViewGroup parent) {
+		view.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				int viewPosition = recyclerView.getChildAdapterPosition(v);
+				RvJoiner.ItemInfo itemInfo = rvJoiner.getItemInfo(viewPosition);
+				//remove joinable
+				rvJoiner.remove(itemInfo.joinable);
+			}
+		});
 	}
 
 }

@@ -1,7 +1,10 @@
 package su.j2e.rvjoiner;
 
+import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.RecyclerView.ViewHolder;
+import android.util.Log;
+import android.util.SparseArray;
 import android.view.ViewGroup;
 
 import java.util.ArrayList;
@@ -16,10 +19,15 @@ import java.util.List;
  * 3. When you finished addition, use {@link #getAdapter()} to get adapter and set it to your
  * {@link RecyclerView}
  * </pre>
- * Don't directly use methods of an adapter you received via {@link #getAdapter()}, or use carefully
- * (correct work is not guaranteed). Use methods in {@link RvJoiner} as a public interface.
+ * Don't directly use methods of an adapter you received via {@link #getAdapter()},
+ * or use carefully (correct work is not guaranteed). Use methods in {@link RvJoiner} as a public
+ * interface when possible. <b>NOTE:</b> notifySomething() methods will NOT work correctly, use
+ * automatic data update (enabled in default constructor), or {@link RvJoiner#updateData()} to
+ * update data manually.
  */
 public class RvJoiner {
+
+	private static final String TAG = RvJoiner.class.getName();
 
 	/**
 	 * Interface required for object to be used in {@link RvJoiner}
@@ -92,12 +100,40 @@ public class RvJoiner {
 		this(true);
 	}
 
-	//todo doc + remove method + cache info
-	public void add(Joinable joinable) {
-		adapter.addToStructure(joinable);
+	/**
+	 * Adds joinable to the bottom of adapter.
+	 * @param joinable joinable to add, not null
+	 * @return false if already was added before
+	 * @throws IllegalArgumentException if joinable is null
+	 */
+	public boolean add(Joinable joinable) {
+		if (joinable == null) throw new IllegalArgumentException("Joinable can't be null");
 		if (autoUpdate) {
-			joinable.getAdapter().registerAdapterDataObserver(adapterDataObserver);
+			try {//avoid "observer was already registered" exception
+				joinable.getAdapter().registerAdapterDataObserver(adapterDataObserver);
+			} catch (IllegalStateException ex) {
+				Log.d(TAG, "add: observer was already registered");
+			}
 		}
+		return adapter.addJoinableToStructure(joinable);
+	}
+
+	/**
+	 * Removes joinable from adapter.
+	 * @param joinable joinable to remove, not null
+	 * @return false if wasn't added
+	 * @throws IllegalArgumentException if joinable is null
+	 */
+	public boolean remove(Joinable joinable) {
+		if (joinable == null) throw new IllegalArgumentException("Joinable can't be null");
+		if (autoUpdate) {
+			try {//avoid "observer wasn't registered" exception
+				joinable.getAdapter().unregisterAdapterDataObserver(adapterDataObserver);
+			} catch (IllegalStateException ex) {
+				Log.d(TAG, "remove: observer wasn't registered");
+			}
+		}
+		return adapter.removeJoinableFromStructure(joinable);
 	}
 
 	/**
@@ -106,8 +142,9 @@ public class RvJoiner {
 	 */
 	public void updateData() {
 		adapter.onDataSetChanged();
-		adapter.notifyDataSetChanged();
 	}
+
+	//todo other notification methods like updateData(from, to) or smth like this
 
 	/**
 	 * @return adapter, which you can set to RecyclerView.
@@ -156,7 +193,10 @@ public class RvJoiner {
 	 */
 	private static class Adapter extends RecyclerView.Adapter {
 
+		private static final String TAG = Adapter.class.getName();
+
 		private List<Joinable> joinables = new ArrayList<>();
+		private SparseArray<ItemInfo> itemInfoCache = new SparseArray<>();
 
 		//update once in constructor
 		//this lists "maps" joined type (position) on different values
@@ -199,10 +239,20 @@ public class RvJoiner {
 			return joinedPosToJoinedType.get(joinedPosition);
 		}
 
-		private void addToStructure(Joinable joinable) {
-			joinables.add(joinable);
-			onStructureChanged();
-			onDataSetChanged();//new joinable adds new data
+		private boolean addJoinableToStructure(@NonNull Joinable joinable) {
+			boolean wasAdded = joinables.add(joinable);
+			if (wasAdded) {
+				onStructureChanged();
+			}
+			return wasAdded;
+		}
+
+		private boolean removeJoinableFromStructure(@NonNull Joinable joinable) {
+			boolean wasRemoved = joinables.remove(joinable);
+			if (wasRemoved) {
+				onStructureChanged();
+			}
+			return wasRemoved;
 		}
 
 		/**
@@ -218,6 +268,7 @@ public class RvJoiner {
 					joinedTypeToRealType.add(joinable.getType(i));
 				}
 			}
+			onDataSetChanged();//new joinable adds new data
 		}
 
 		/**
@@ -239,24 +290,30 @@ public class RvJoiner {
 				}
 				prevTypeCount += joinable.getTypeCount();
 			}
+			itemInfoCache.clear();
+			notifyDataSetChanged();
 		}
 
 		/**
 		 * Can return null, if position doesn't exist.
 		 */
 		private ItemInfo getItemInfoObject(int joinedPosition) {
-			//todo cache this objects
-			try {
-				return new ItemInfo(
-						joinedPosition,
-						joinedPosToRealPos.get(joinedPosition),
-						joinedPosToJoinable.get(joinedPosition),
-						joinedPosToJoinedType.get(joinedPosition),
-						joinedTypeToRealType.get(joinedPosToJoinedType.get(joinedPosition))
-				);
-			} catch (IndexOutOfBoundsException ex) {
-				return null;
+			ItemInfo itemInfo = itemInfoCache.get(joinedPosition);
+			if (itemInfo == null) {
+				try {
+					itemInfo = new ItemInfo(
+							joinedPosition,
+							joinedPosToRealPos.get(joinedPosition),
+							joinedPosToJoinable.get(joinedPosition),
+							joinedPosToJoinedType.get(joinedPosition),
+							joinedTypeToRealType.get(joinedPosToJoinedType.get(joinedPosition))
+					);
+					itemInfoCache.put(joinedPosition, itemInfo);
+				} catch (IndexOutOfBoundsException ex) {
+					Log.e(TAG, "getItemInfoObject: position doesn't exist: " + joinedPosition, ex);
+				}
 			}
+			return itemInfo;
 		}
 
 	}

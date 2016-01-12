@@ -33,8 +33,8 @@ public class JoinableLayout implements RvJoiner.Joinable {
 	 * @param callback callback if you want to customize view after inflating
 	 */
 	public JoinableLayout(@LayoutRes int layoutResId, int itemType, @Nullable Callback callback) {
-		adapter = new Adapter(layoutResId, callback);
 		this.itemType = itemType;
+		adapter = new Adapter(layoutResId, callback);
 	}
 
 	@Override
