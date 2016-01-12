@@ -24,6 +24,6 @@ repositories {
 
 dependencies {
     //your other dependencies
-    compile 'su.j2e:rv-joiner:1.0.0'
+    compile 'su.j2e:rv-joiner:1.0.1'
 }
 </code></pre>
