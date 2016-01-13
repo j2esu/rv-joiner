@@ -10,6 +10,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import ru.java2e.android.rvadapterjoinerdemo.R;
+import su.j2e.rvjoiner.RvJoiner;
 import su.j2e.rvjoinerdemo.model.Bug;
 import su.j2e.rvjoinerdemo.model.Issue;
 import su.j2e.rvjoinerdemo.model.Task;
@@ -20,6 +21,11 @@ public class IssuesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 	public static final int VIEW_TYPE_BUG = 1;
 
 	private List<Issue> issues = new LinkedList<>();
+	private RvJoiner.RealPositionProvider realPositionProvider;
+
+	public IssuesAdapter(RvJoiner.RealPositionProvider realPositionProvider) {
+		this.realPositionProvider = realPositionProvider;
+	}
 
 	/**
 	 * Used to update adapter data
@@ -27,14 +33,6 @@ public class IssuesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 	public void updateData(List<Issue> issues) {
 		this.issues = issues;
 		notifyDataSetChanged();
-	}
-
-	public void removeLast() {
-		if (issues.size() > 0) {
-			int lastPos = issues.size() - 1;
-			issues.remove(lastPos);
-			notifyItemRemoved(lastPos);
-		}
 	}
 
 	@Override
@@ -85,6 +83,11 @@ public class IssuesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 		notifyItemRemoved(position);
 	}
 
+	private void onTaskItemClick(int position) {
+		issues.add(position, new Bug());//ok, i shouldn't do this here, it should do data provider
+		notifyItemInserted(position);
+	}
+
 	protected class TaskVh extends RecyclerView.ViewHolder {
 
 		private final TextView descTv;
@@ -93,6 +96,12 @@ public class IssuesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 			super(LayoutInflater.from(parent.getContext())
 					.inflate(R.layout.task_item, parent, false));
 			descTv = (TextView) itemView.findViewById(R.id.task_item_desc);
+			itemView.setOnClickListener(new View.OnClickListener() {
+				@Override
+				public void onClick(View v) {
+					onTaskItemClick(realPositionProvider.getRealPosition(getAdapterPosition()));
+				}
+			});
 		}
 
 		private void bind(Task task) {
@@ -112,14 +121,13 @@ public class IssuesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 			itemView.setOnClickListener(new View.OnClickListener() {
 				@Override
 				public void onClick(View v) {
-					onBugItemClick((Integer) v.getTag());
+					onBugItemClick(realPositionProvider.getRealPosition(getAdapterPosition()));
 				}
 			});
 		}
 
 		private void bind(Bug bug) {
 			descTv.setText(bug.getDescription());
-			itemView.setTag(getAdapterPosition());
 		}
 	}
 

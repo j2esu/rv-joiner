@@ -5,6 +5,7 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.RecyclerView.ViewHolder;
 import android.util.Log;
 import android.util.SparseArray;
+import android.view.View;
 import android.view.ViewGroup;
 
 import java.util.ArrayList;
@@ -126,14 +127,14 @@ public class RvJoiner {
 	/**
 	 * @param joinedPosition total joined position (form 0 to item count  - 1)
 	 * @return object which wraps info, or null if position doesn't exist
-	 * @see su.j2e.rvjoiner.RvJoiner.ItemInfo
+	 * @see PositionInfo
 	 */
-	public ItemInfo getItemInfo(int joinedPosition) {
-		return hostAdapter.getItemInfoInternal(joinedPosition);
+	public PositionInfo getPositionInfo(int joinedPosition) {
+		return hostAdapter.getPositionInfoInternal(joinedPosition);
 	}
 
 	/**
-	 * @see su.j2e.rvjoiner.RvJoiner.ItemInfo
+	 * @see PositionInfo
 	 * @return total joined position in joiner, or -1 if not exist
 	 */
 	public int getJoinedPosition(int realPosition, Joinable joinable) {
@@ -143,14 +144,14 @@ public class RvJoiner {
 	/**
 	 * Class to wrap together extra item info. You can access info using public final fields.
 	 * <pre>
-	 *     {@link RvJoiner.ItemInfo#joinedPosition} - total position in joiner
-	 *     {@link RvJoiner.ItemInfo#realPosition} - position in real hostAdapter which handles item
-	 *     {@link RvJoiner.ItemInfo#joinable} - joinable which handles item
-	 *     {@link RvJoiner.ItemInfo#joinedType} - total type in joiner
-	 *     {@link RvJoiner.ItemInfo#realType} - type in real hostAdapter which handles item
+	 *     {@link PositionInfo#joinedPosition} - total position in joiner
+	 *     {@link PositionInfo#realPosition} - position in real hostAdapter which handles item
+	 *     {@link PositionInfo#joinable} - joinable which handles item
+	 *     {@link PositionInfo#joinedType} - total type in joiner
+	 *     {@link PositionInfo#realType} - type in real hostAdapter which handles item
 	 * </pre>
 	 */
-	public static class ItemInfo {
+	public static class PositionInfo {
 
 		public final int joinedPosition;
 		public final int realPosition;
@@ -158,13 +159,45 @@ public class RvJoiner {
 		public final int joinedType;
 		public final int realType;
 
-		private ItemInfo(int joinedPosition, int realPosition, Joinable joinable, int joinedType,
-						 int realType) {
+		private PositionInfo(int joinedPosition, int realPosition, Joinable joinable, int joinedType,
+							 int realType) {
 			this.joinedPosition = joinedPosition;
 			this.realPosition = realPosition;
 			this.joinable = joinable;
 			this.joinedType = joinedType;
 			this.realType = realType;
+		}
+
+	}
+
+	/**
+	 * Can be used as {@link RvJoiner} wrapper to get real position by joined position.
+	 * This class appears because this methods
+	 * {@link RecyclerView#getChildAdapterPosition(View)},
+	 * {@link RecyclerView#getChildLayoutPosition(View)},
+	 * {@link ViewHolder#getAdapterPosition()}
+	 * {@link ViewHolder#getLayoutPosition()}
+	 * returns JOINED position, but it's often more important know the real position (for ex.,
+	 * when react on click and want to know what data from adapter you should use)
+	 */
+	public static class RealPositionProvider {
+
+		private RvJoiner rvJoiner;
+
+		/**
+		 * @param rvJoiner may be null
+		 */
+		public RealPositionProvider(RvJoiner rvJoiner) {
+			this.rvJoiner = rvJoiner;
+		}
+
+		/**
+		 * Returns real position corresponded to this joined position.
+		 * Will return the same value if no joiner were passed to constructor
+		 */
+		public int getRealPosition(int joinedPosition) {
+			return rvJoiner == null ? joinedPosition :
+					rvJoiner.getPositionInfo(joinedPosition).realPosition;
 		}
 
 	}
@@ -184,7 +217,7 @@ public class RvJoiner {
 		//should be unique, but keep insertion iteration order
 		private Set<Joinable> joinables = new LinkedHashSet<>();
 
-		private SparseArray<ItemInfo> itemInfoCache = new SparseArray<>();
+		private SparseArray<PositionInfo> itemInfoCache = new SparseArray<>();
 
 		//update once in constructor
 		//this lists "maps" joined type (position) on different values
@@ -258,8 +291,6 @@ public class RvJoiner {
 			return joinedPosToJoinedType.get(joinedPosition);
 		}
 
-		//todo check other hostAdapter methods
-
 		private boolean addJoinableToStructure(@NonNull Joinable joinable) {
 			boolean wasAdded = joinables.add(joinable);
 			if (wasAdded) {
@@ -318,23 +349,23 @@ public class RvJoiner {
 		}
 
 		//return null, if position doesn't exist.
-		private ItemInfo getItemInfoInternal(int joinedPosition) {
-			ItemInfo itemInfo = itemInfoCache.get(joinedPosition);
-			if (itemInfo == null) {
+		private PositionInfo getPositionInfoInternal(int joinedPosition) {
+			PositionInfo positionInfo = itemInfoCache.get(joinedPosition);
+			if (positionInfo == null) {
 				try {
-					itemInfo = new ItemInfo(
+					positionInfo = new PositionInfo(
 							joinedPosition,
 							joinedPosToRealPos.get(joinedPosition),
 							joinedPosToJoinable.get(joinedPosition),
 							joinedPosToJoinedType.get(joinedPosition),
 							joinedTypeToRealType.get(joinedPosToJoinedType.get(joinedPosition))
 					);
-					itemInfoCache.put(joinedPosition, itemInfo);
+					itemInfoCache.put(joinedPosition, positionInfo);
 				} catch (IndexOutOfBoundsException ex) {
-					Log.e(TAG, "getItemInfoInternal: position doesn't exist: " + joinedPosition, ex);
+					Log.e(TAG, "getPositionInfoInternal: position doesn't exist: " + joinedPosition, ex);
 				}
 			}
-			return itemInfo;
+			return positionInfo;
 		}
 
 		//return -1 if position doesn't exist
