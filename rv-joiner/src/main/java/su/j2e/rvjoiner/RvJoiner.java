@@ -9,8 +9,10 @@ import android.view.ViewGroup;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Joins several {@link RecyclerView.Adapter}, layouts and other {@link RvJoiner.Joinable} into
@@ -179,8 +181,9 @@ public class RvJoiner {
 
 		private static final String TAG = HostAdapter.class.getName();
 
-		//todo should be unique and sorted (maybe sored set)
-		private List<Joinable> joinables = new ArrayList<>();
+		//should be unique, but keep insertion iteration order
+		private Set<Joinable> joinables = new LinkedHashSet<>();
+
 		private SparseArray<ItemInfo> itemInfoCache = new SparseArray<>();
 
 		//update once in constructor
@@ -258,12 +261,11 @@ public class RvJoiner {
 		//todo check other hostAdapter methods
 
 		private boolean addJoinableToStructure(@NonNull Joinable joinable) {
-			boolean alreadyExist = joinables.contains(joinable);
-			if (!alreadyExist) {
-				joinables.add(joinable);
+			boolean wasAdded = joinables.add(joinable);
+			if (wasAdded) {
 				postStructureChanged();
 			}
-			return !alreadyExist;
+			return wasAdded;
 		}
 
 		private boolean removeJoinableFromStructure(@NonNull Joinable joinable) {
