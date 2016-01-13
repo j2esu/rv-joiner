@@ -356,38 +356,38 @@ public class RvJoiner {
 
 		private Joinable joinable;
 		private RvJoiner rvJoiner;
-		private RecyclerView.Adapter adapter;
 
 		private DataObserver(Joinable joinable, RvJoiner rvJoiner) {
 			this.joinable = joinable;
 			this.rvJoiner = rvJoiner;
-			this.adapter = rvJoiner.getAdapter();
 		}
 
 		@Override
 		public void onChanged() {
-			adapter.notifyDataSetChanged();
+			//update only items in correspond adapter
+			onItemRangeChanged(0, joinable.getAdapter().getItemCount());
 		}
 
 		@Override
 		public void onItemRangeChanged(int positionStart, int itemCount) {
-			adapter.notifyItemRangeChanged(getJoinedPosition(positionStart), itemCount);
+			rvJoiner.getAdapter().notifyItemRangeChanged(getJoinedPosition(positionStart), itemCount);
 		}
 
 		@Override
 		public void onItemRangeInserted(int positionStart, int itemCount) {
-			adapter.notifyItemRangeInserted(getJoinedPosition(positionStart), itemCount);
+			rvJoiner.getAdapter().notifyItemRangeInserted(getJoinedPosition(positionStart), itemCount);
 		}
 
 		@Override
 		public void onItemRangeRemoved(int positionStart, int itemCount) {
-			adapter.notifyItemRangeRemoved(getJoinedPosition(positionStart), itemCount);
+			rvJoiner.getAdapter().notifyItemRangeRemoved(getJoinedPosition(positionStart), itemCount);
 		}
 
 		@Override
 		public void onItemRangeMoved(int fromPosition, int toPosition, int itemCount) {
 			if (itemCount == 1) {
-				adapter.notifyItemMoved(getJoinedPosition(fromPosition), getJoinedPosition(toPosition));
+				rvJoiner.getAdapter().notifyItemMoved(getJoinedPosition(fromPosition),
+						getJoinedPosition(toPosition));
 			} else if (itemCount > 1) {
 				onChanged();//no notifyItemRangeMoved method by now
 			}
