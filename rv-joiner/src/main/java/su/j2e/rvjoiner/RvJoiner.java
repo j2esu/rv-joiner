@@ -27,6 +27,8 @@ import java.util.Set;
  * 5. If auto update ON (default constructor) join hostAdapter reflects all your data updates (or you
  * can use notify methods on it to update data manually if using {@link RvJoiner#RvJoiner(boolean)})
  * </pre>
+ * Note, that if you use stable ids you should call {@link RecyclerView.Adapter#setHasStableIds(boolean)}
+ * on the join adapter you received via {@link RvJoiner#getAdapter()}
  */
 public class RvJoiner {
 
@@ -64,17 +66,18 @@ public class RvJoiner {
 	/**
 	 * @param autoUpdate if true, joiner will listen for data updates in joined adapters,
 	 *                   otherwise you have to call notify methods manually
+	 * @param hasStableIds true if you want to use stable ids
 	 */
-	public RvJoiner(boolean autoUpdate) {
-		hostAdapter = new HostAdapter();
+	public RvJoiner(boolean autoUpdate, boolean hasStableIds) {
 		this.autoUpdate = autoUpdate;
+		hostAdapter = new HostAdapter(hasStableIds);
 	}
 
 	/**
-	 * The same as {@link #RvJoiner(boolean)} with auto update ON.
+	 * The same as {@link #RvJoiner(boolean, boolean)} with auto update TRUE and stable ids TRUE
 	 */
 	public RvJoiner() {
-		this(true);
+		this(true, true);
 	}
 
 	/**
@@ -233,7 +236,8 @@ public class RvJoiner {
 
 		private Map<Joinable, int[]> joinableToJoinedPosArray = new HashMap<>();
 
-		private HostAdapter() {
+		private HostAdapter(boolean hasStableIds) {
+			setHasStableIds(hasStableIds);
 			registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
 				@Override
 				public void onChanged() {

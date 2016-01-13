@@ -1,14 +1,22 @@
 package su.j2e.rvjoinerdemo.model;
 
-public interface Issue {
+import su.j2e.rvjoinerdemo.Util;
 
-	int TYPE_TASK = 10;
-	int TYPE_BUG = 11;
+public abstract class Issue extends DomainObject {
 
-	String getDescription();
+	public static final int TYPE_TASK = 10;
+	public static final int TYPE_BUG = 11;
 
-	void setDescription(String description);
+	private String description = Util.getRandomSentence(40);
 
-	int getType();
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
+	}
+
+	public abstract int getType();
 
 }

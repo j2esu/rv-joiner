@@ -2,7 +2,7 @@ package su.j2e.rvjoinerdemo.model;
 
 import su.j2e.rvjoinerdemo.Util;
 
-public class Note {
+public class Note extends DomainObject {
 
 	private String text = Util.getRandomSentence(40);
 	private int color = Util.getRandomColor();

@@ -2,8 +2,10 @@ package su.j2e.rvjoinerdemo.list;
 
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -16,12 +18,18 @@ public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.NoteVh> {
 
 	private List<Note> notes = new LinkedList<>();
 
-	/**
-	 * Used to update adapter data
-	 */
+	public NotesAdapter() {
+		setHasStableIds(true);
+	}
+
 	public void updateData(List<Note> notes) {
 		this.notes = notes;
 		notifyDataSetChanged();
+	}
+
+	@Override
+	public long getItemId(int position) {
+		return notes.get(position).getId();
 	}
 
 	@Override
@@ -47,6 +55,12 @@ public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.NoteVh> {
 			super(LayoutInflater.from(parent.getContext())
 					.inflate(R.layout.note_item, parent, false));
 			textTv = (TextView) itemView.findViewById(R.id.note_item_text);
+			itemView.setOnClickListener(new View.OnClickListener() {
+				@Override
+				public void onClick(View v) {
+					Toast.makeText(v.getContext(), "Id: " + getItemId(), Toast.LENGTH_SHORT).show();
+				}
+			});
 		}
 
 		private void bind(Note note) {

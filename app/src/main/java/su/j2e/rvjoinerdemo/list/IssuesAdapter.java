@@ -1,10 +1,12 @@
 package su.j2e.rvjoinerdemo.list;
 
+import android.content.Context;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -25,11 +27,9 @@ public class IssuesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 
 	public IssuesAdapter(RvJoiner.RealPositionProvider realPositionProvider) {
 		this.realPositionProvider = realPositionProvider;
+		setHasStableIds(true);
 	}
 
-	/**
-	 * Used to update adapter data
-	 */
 	public void updateData(List<Issue> issues) {
 		this.issues = issues;
 		notifyDataSetChanged();
@@ -78,6 +78,11 @@ public class IssuesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 		}
 	}
 
+	@Override
+	public long getItemId(int position) {
+		return issues.get(position).getId();
+	}
+
 	private void onBugItemClick(int position) {
 		issues.remove(position);
 		notifyItemRemoved(position);
@@ -99,6 +104,7 @@ public class IssuesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 			itemView.setOnClickListener(new View.OnClickListener() {
 				@Override
 				public void onClick(View v) {
+					showIdToast(getItemId(), v.getContext());
 					onTaskItemClick(realPositionProvider.getRealPosition(getAdapterPosition()));
 				}
 			});
@@ -121,6 +127,7 @@ public class IssuesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 			itemView.setOnClickListener(new View.OnClickListener() {
 				@Override
 				public void onClick(View v) {
+					showIdToast(getItemId(), v.getContext());
 					onBugItemClick(realPositionProvider.getRealPosition(getAdapterPosition()));
 				}
 			});
@@ -129,6 +136,10 @@ public class IssuesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 		private void bind(Bug bug) {
 			descTv.setText(bug.getDescription());
 		}
+	}
+
+	private void showIdToast(long itemId, Context context) {
+		Toast.makeText(context, "id: " + itemId, Toast.LENGTH_SHORT).show();
 	}
 
 }

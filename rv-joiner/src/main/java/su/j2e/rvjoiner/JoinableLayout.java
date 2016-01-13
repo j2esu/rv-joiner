@@ -31,19 +31,23 @@ public class JoinableLayout implements RvJoiner.Joinable {
 	 * @param layoutResId layout resource to inflate view
 	 * @param itemType type constant, or 0, or other value if you don't need it
 	 * @param callback callback if you want to customize view after inflating
+	 * @param stableId unique id if you need to use stable id feature (call setHasStableIds
+	 *                  on adapter automatically), or {@link RecyclerView#NO_ID} if no stable ids
 	 */
-	public JoinableLayout(@LayoutRes int layoutResId, int itemType, @Nullable Callback callback) {
+	public JoinableLayout(@LayoutRes int layoutResId, int itemType, @Nullable Callback callback,
+						  long stableId) {
 		this.itemType = itemType;
-		adapter = new Adapter(layoutResId, callback);
+		adapter = new Adapter(layoutResId, callback, stableId);
 	}
 
 	/**
 	 * Simple constructor if you don't need any customization.
-	 * The same as {@link #JoinableLayout(int, int, Callback)} with 0 type and null callback.
+	 * The same as {@link #JoinableLayout(int, int, Callback, long)} with 0 type, null callback and
+	 * without stable id
 	 * @param layoutResId layout resource to inflate view
 	 */
 	public JoinableLayout(@LayoutRes int layoutResId) {
-		this(layoutResId, 0, null);
+		this(layoutResId, 0, null, RecyclerView.NO_ID);
 	}
 
 	@Override
@@ -69,6 +73,7 @@ public class JoinableLayout implements RvJoiner.Joinable {
 	private static class Adapter extends RecyclerView.Adapter<Adapter.LayoutVh> {
 
 		private int layoutResId;
+		private long stableId = RecyclerView.NO_ID;
 
 		//init default callback to avoid null checking
 		private Callback callback = new Callback() {
@@ -76,11 +81,12 @@ public class JoinableLayout implements RvJoiner.Joinable {
 			public void onInflateComplete(View view, ViewGroup parent) {}
 		};
 
-		public Adapter(int layoutResId, Callback callback) {
+		//pass stableId == RecyclerView.NO_ID if stable ids not used
+		private Adapter(int layoutResId, Callback callback, long stableId) {
 			this.layoutResId = layoutResId;
-			if (callback != null) {
-				this.callback = callback;
-			}
+			this.callback = (callback != null ? callback : this.callback);
+			this.stableId = stableId;
+			setHasStableIds(stableId != RecyclerView.NO_ID);
 		}
 
 		@Override
@@ -97,6 +103,15 @@ public class JoinableLayout implements RvJoiner.Joinable {
 		@Override
 		public int getItemCount() {
 			return 1;
+		}
+
+		@Override
+		public long getItemId(int position) {
+			return stableId;
+		}
+
+		private void setStableIdInternal(long id) {
+			stableId = id;
 		}
 
 		protected static class LayoutVh extends RecyclerView.ViewHolder {

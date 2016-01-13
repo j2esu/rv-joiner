@@ -1,10 +1,10 @@
 package su.j2e.rvjoinerdemo.model;
 
-public class Bug extends AbsIssue {
+public class Bug extends Issue {
 
 	@Override
 	public int getType() {
-		return Issue.TYPE_BUG;
+		return TYPE_BUG;
 	}
 
 }
