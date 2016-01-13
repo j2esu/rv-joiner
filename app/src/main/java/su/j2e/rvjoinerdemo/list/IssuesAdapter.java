@@ -2,6 +2,7 @@ package su.j2e.rvjoinerdemo.list;
 
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
@@ -26,6 +27,14 @@ public class IssuesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 	public void updateData(List<Issue> issues) {
 		this.issues = issues;
 		notifyDataSetChanged();
+	}
+
+	public void removeLast() {
+		if (issues.size() > 0) {
+			int lastPos = issues.size() - 1;
+			issues.remove(lastPos);
+			notifyItemRemoved(lastPos);
+		}
 	}
 
 	@Override
@@ -71,6 +80,11 @@ public class IssuesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 		}
 	}
 
+	private void onBugItemClick(int position) {
+		issues.remove(position);
+		notifyItemRemoved(position);
+	}
+
 	protected class TaskVh extends RecyclerView.ViewHolder {
 
 		private final TextView descTv;
@@ -95,10 +109,17 @@ public class IssuesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 			super(LayoutInflater.from(parent.getContext())
 					.inflate(R.layout.bug_item, parent, false));
 			descTv = (TextView) itemView.findViewById(R.id.bug_item_desc);
+			itemView.setOnClickListener(new View.OnClickListener() {
+				@Override
+				public void onClick(View v) {
+					onBugItemClick((Integer) v.getTag());
+				}
+			});
 		}
 
 		private void bind(Bug bug) {
 			descTv.setText(bug.getDescription());
+			itemView.setTag(getAdapterPosition());
 		}
 	}
 

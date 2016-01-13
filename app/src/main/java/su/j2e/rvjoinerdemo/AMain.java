@@ -108,8 +108,12 @@ public class AMain extends AppCompatActivity implements View.OnClickListener, Jo
 	@Override
 	public void onClick(View v) {
 		//add new removable joinable to layout
-		rvJoiner.add(new JoinableLayout(R.layout.removable_item, 0, this));
+//		rvJoiner.add(new JoinableLayout(R.layout.removable_item, 0, this));
+		rvJoiner.add(new JoinableAdapter(issuesAdapter, new int[]{
+				IssuesAdapter.VIEW_TYPE_TASK, IssuesAdapter.VIEW_TYPE_BUG
+		}));
 		recyclerView.smoothScrollToPosition(rvJoiner.getAdapter().getItemCount());
+//		issuesAdapter.removeLast();
 	}
 
 	@Override
