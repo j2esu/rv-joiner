@@ -51,11 +51,11 @@ public class RvJoiner {
 
 	private static final String TAG = RvJoiner.class.getName();
 
-	private HostAdapter hostAdapter;
-	private boolean autoUpdate = true;
+	private HostAdapter mHostAdapter;
+	private boolean mAutoUpdate = true;
 
 	//to find correspond observer for unregister
-	private Map<Joinable, DataObserver> joinableToObserver = new HashMap<>();
+	private Map<Joinable, DataObserver> mJoinableToObserver = new HashMap<>();
 
 	/**
 	 * @param autoUpdate if true, joiner will listen for data updates in joined adapters,
@@ -63,8 +63,8 @@ public class RvJoiner {
 	 * @param hasStableIds true if you want to use stable ids
 	 */
 	public RvJoiner(boolean autoUpdate, boolean hasStableIds) {
-		this.autoUpdate = autoUpdate;
-		hostAdapter = new HostAdapter(hasStableIds);
+		mAutoUpdate = autoUpdate;
+		mHostAdapter = new HostAdapter(hasStableIds);
 	}
 
 	/**
@@ -75,7 +75,7 @@ public class RvJoiner {
 	}
 
 	public int getJoinableCount() {
-		return hostAdapter.getJoinableCountInternal();
+		return mHostAdapter.getJoinableCountInternal();
 	}
 
 	/**
@@ -87,13 +87,13 @@ public class RvJoiner {
 	 */
 	public boolean add(Joinable joinable, int location) {
 		if (joinable == null) throw new IllegalArgumentException("Joinable can't be null");
-		boolean wasAdded = hostAdapter.addJoinableToStructure(joinable, location);
-		if (wasAdded && autoUpdate) {
+		boolean wasAdded = mHostAdapter.addJoinableToStructure(joinable, location);
+		if (wasAdded && mAutoUpdate) {
 			try {//avoid "observer was already registered" exception
-				if (joinableToObserver.get(joinable) == null) {//if no current observer
-					joinableToObserver.put(joinable, new DataObserver(joinable, this));//put it
+				if (mJoinableToObserver.get(joinable) == null) {//if no current observer
+					mJoinableToObserver.put(joinable, new DataObserver(joinable, mHostAdapter));
 				}
-				joinable.getAdapter().registerAdapterDataObserver(joinableToObserver.get(joinable));
+				joinable.getAdapter().registerAdapterDataObserver(mJoinableToObserver.get(joinable));
 			} catch (IllegalStateException ex) {
 				Log.d(TAG, "add: observer was already registered");
 			}
@@ -116,23 +116,23 @@ public class RvJoiner {
 	 */
 	public boolean remove(Joinable joinable) {
 		if (joinable == null) return false;
-		if (autoUpdate) {
+		if (mAutoUpdate) {
 			try {//avoid "observer wasn't registered" exception
 				joinable.getAdapter().unregisterAdapterDataObserver(
-						joinableToObserver.get(joinable));
-				//todo remove from map
+						mJoinableToObserver.get(joinable));
+				//removing from map not needed
 			} catch (IllegalStateException|IllegalArgumentException ex) {
 				Log.d(TAG, "remove: observer not registered");
 			}
 		}
-		return hostAdapter.removeJoinableFromStructure(joinable);
+		return mHostAdapter.removeJoinableFromStructure(joinable);
 	}
 
 	/**
-	 * @return hostAdapter, which you can set to RecyclerView.
+	 * @return adapter, which you can set to RecyclerView.
 	 */
 	public RecyclerView.Adapter getAdapter() {
-		return hostAdapter;
+		return mHostAdapter;
 	}
 
 	/**
@@ -141,15 +141,7 @@ public class RvJoiner {
 	 * @see PositionInfo
 	 */
 	public PositionInfo getPositionInfo(int joinedPosition) {
-		return hostAdapter.getPositionInfoInternal(joinedPosition);
-	}
-
-	/**
-	 * @see PositionInfo
-	 * @return total joined position in joiner, or {@link RecyclerView#NO_POSITION} if not exist
-	 */
-	public int getJoinedPosition(int realPosition, Joinable joinable) {
-		return hostAdapter.getJoinedPositionInternal(realPosition, joinable);
+		return mHostAdapter.getPositionInfoInternal(joinedPosition);
 	}
 
 	/**
@@ -184,22 +176,24 @@ public class RvJoiner {
 	/**
 	 * Can be used as {@link RvJoiner} wrapper to get real position by joined position.
 	 * This class appears because this methods
+	 * <pre>
 	 * {@link RecyclerView#getChildAdapterPosition(View)},
 	 * {@link RecyclerView#getChildLayoutPosition(View)},
 	 * {@link ViewHolder#getAdapterPosition()}
 	 * {@link ViewHolder#getLayoutPosition()}
+	 * </pre>
 	 * returns JOINED position, but it's often more important know the real position (for ex.,
 	 * when react on click and want to know what data from adapter you should use)
 	 */
 	public static class RealPositionProvider {
 
-		private RvJoiner rvJoiner;
+		private RvJoiner mRvJoiner;
 
 		/**
 		 * @param rvJoiner may be null
 		 */
 		public RealPositionProvider(RvJoiner rvJoiner) {
-			this.rvJoiner = rvJoiner;
+			this.mRvJoiner = rvJoiner;
 		}
 
 		/**
@@ -207,8 +201,8 @@ public class RvJoiner {
 		 * Will return the same value if no joiner were passed to constructor
 		 */
 		public int getRealPosition(int joinedPosition) {
-			return rvJoiner == null ? joinedPosition :
-					rvJoiner.getPositionInfo(joinedPosition).realPosition;
+			return mRvJoiner == null ? joinedPosition :
+					mRvJoiner.getPositionInfo(joinedPosition).realPosition;
 		}
 
 	}
@@ -304,12 +298,24 @@ public class RvJoiner {
 			return mJoinables.size();
 		}
 
+		/**
+		 * @return joined position for first element of joinable,
+		 * or {@link RecyclerView#NO_POSITION} if joinable is not added
+		 */
+		private int getJoinableStartPosition(Joinable joinable) {
+			int positionStart = 0;
+			for (Joinable currentJoinable : mJoinables) {
+				if (currentJoinable == joinable) return positionStart;
+				positionStart += currentJoinable.getAdapter().getItemCount();
+			}
+			return RecyclerView.NO_POSITION;
+		}
+
 		private boolean addJoinableToStructure(@NonNull Joinable joinable, int location) {
-			boolean alreadyExist = mJoinables.contains(joinable);
-			if (!alreadyExist) {
+			if (!mJoinables.contains(joinable)) {
 				mJoinables.add(location, joinable);
-				postStructureChanged(joinable);
-				int positionStart = getJoinedPositionInternal(0, joinable);
+				postStructureChanged(joinable, false);//false, because redundant (notify calls it)
+				int positionStart = getJoinableStartPosition(joinable);
 				if (positionStart != RecyclerView.NO_POSITION) {
 					notifyItemRangeInserted(positionStart, joinable.getAdapter().getItemCount());
 				}
@@ -319,10 +325,10 @@ public class RvJoiner {
 		}
 
 		private boolean removeJoinableFromStructure(@NonNull Joinable joinable) {
+			//save this before removing
+			int positionStart = getJoinableStartPosition(joinable);
 			if (mJoinables.remove(joinable)) {//if  was removed
-				//save this before removing
-				int positionStart = getJoinedPositionInternal(0, joinable);
-				postStructureChanged(joinable);
+				postStructureChanged(joinable, false);//false, because redundant (notify calls it)
 				if (positionStart != RecyclerView.NO_POSITION) {
 					notifyItemRangeRemoved(positionStart, joinable.getAdapter().getItemCount());
 				}
@@ -334,7 +340,7 @@ public class RvJoiner {
 		/**
 		 * Should be called after any structure changing (changes in {@link #mJoinables}).
 		 */
-		private void postStructureChanged(Joinable diffJoinable) {
+		private void postStructureChanged(Joinable diffJoinable, boolean updateData) {
 			if (mJoinables.contains(diffJoinable)) {//if was added
 				SparseIntArray realToJoinedTypes = new SparseIntArray(diffJoinable.getTypeCount());
 				for (int i = 0; i < diffJoinable.getTypeCount(); i++) {
@@ -345,14 +351,15 @@ public class RvJoiner {
 				}
 				mJoinableToRealToJoinedTypes.put(diffJoinable, realToJoinedTypes);
 			}
-			//structure modifications changes data, so we need to call
-			postDataSetChanged();
+			//structure modifications changes data, but can configure this call for extra situations
+			if (updateData) postDataSetChanged();
 		}
 
 		/**
-		 * Should be called after any {@link #hostAdapter} data set changing.
+		 * Should be called after any {@link #mHostAdapter} data set changing.
 		 */
 		private void postDataSetChanged() {
+			System.out.println("postDataChange");//todo del
 			mCurrentItemCount = 0;
 			mJoinedPosToJoinedType.clear();
 			mJoinedPosToRealPos.clear();
@@ -394,8 +401,10 @@ public class RvJoiner {
 			return positionInfo;
 		}
 
-		//return RecyclerView.NO_POSITION if position doesn't exist
-		private int getJoinedPositionInternal(int realPosition, Joinable joinable) {
+		/**
+		 * @return position, or {@link RecyclerView#NO_POSITION} if position doesn't exist
+		 */
+		private int getJoinedPosition(int realPosition, Joinable joinable) {
 			int[] joinedPosArray = mJoinableToJoinedPosArray.get(joinable);
 			if (joinedPosArray != null && realPosition >= 0 && realPosition < joinedPosArray.length) {
 				return mJoinableToJoinedPosArray.get(joinable)[realPosition];
@@ -412,11 +421,11 @@ public class RvJoiner {
 	private static class DataObserver extends RecyclerView.AdapterDataObserver {
 
 		private Joinable mJoinable;
-		private RvJoiner mRvJoiner;
+		private HostAdapter mHostAdapter;
 
-		private DataObserver(Joinable joinable, RvJoiner rvJoiner) {
+		private DataObserver(Joinable joinable, HostAdapter hostAdapter) {
 			mJoinable = joinable;
-			mRvJoiner = rvJoiner;
+			mHostAdapter = hostAdapter;
 		}
 
 		@Override
@@ -427,23 +436,23 @@ public class RvJoiner {
 
 		@Override
 		public void onItemRangeChanged(int positionStart, int itemCount) {
-			mRvJoiner.getAdapter().notifyItemRangeChanged(getJoinedPosition(positionStart), itemCount);
+			mHostAdapter.notifyItemRangeChanged(getJoinedPosition(positionStart), itemCount);
 		}
 
 		@Override
 		public void onItemRangeInserted(int positionStart, int itemCount) {
-			mRvJoiner.getAdapter().notifyItemRangeInserted(getJoinedPosition(positionStart), itemCount);
+			mHostAdapter.notifyItemRangeInserted(getJoinedPosition(positionStart), itemCount);
 		}
 
 		@Override
 		public void onItemRangeRemoved(int positionStart, int itemCount) {
-			mRvJoiner.getAdapter().notifyItemRangeRemoved(getJoinedPosition(positionStart), itemCount);
+			mHostAdapter.notifyItemRangeRemoved(getJoinedPosition(positionStart), itemCount);
 		}
 
 		@Override
 		public void onItemRangeMoved(int fromPosition, int toPosition, int itemCount) {
 			if (itemCount == 1) {
-				mRvJoiner.getAdapter().notifyItemMoved(getJoinedPosition(fromPosition),
+				mHostAdapter.notifyItemMoved(getJoinedPosition(fromPosition),
 						getJoinedPosition(toPosition));
 			} else if (itemCount > 1) {
 				onChanged();//no notifyItemRangeMoved method by now
@@ -452,7 +461,7 @@ public class RvJoiner {
 
 		//just a wrapper to be short
 		private int getJoinedPosition(int realPosition) {
-			return mRvJoiner.getJoinedPosition(realPosition, mJoinable);
+			return mHostAdapter.getJoinedPosition(realPosition, mJoinable);
 		}
 
 	}

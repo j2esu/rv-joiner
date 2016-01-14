@@ -6,6 +6,9 @@ import android.support.v7.widget.RecyclerView;
 
 /**
  * Wraps {@link RecyclerView.Adapter} to use in {@link RvJoiner}.
+ * Be careful when detecting position of view or view holder in your adapters, you can get position
+ * in joined adapter. This class can be helpful.
+ * {@link su.j2e.rvjoiner.RvJoiner.RealPositionProvider}
  */
 public class JoinableAdapter implements RvJoiner.Joinable {
 
