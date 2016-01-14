@@ -107,8 +107,8 @@ public class AMain extends AppCompatActivity implements View.OnClickListener, Jo
 	public void onClick(View v) {
 		//add new removable joinable to structure
 		rvJoiner.add(new JoinableLayout(R.layout.removable_item, 0, this,
-				-System.currentTimeMillis()));//generate unique id
-		recyclerView.smoothScrollToPosition(rvJoiner.getAdapter().getItemCount());
+				- System.currentTimeMillis()), rvJoiner.getJoinableCount() - 1);
+//		recyclerView.smoothScrollToPosition(rvJoiner.getAdapter().getItemCount());
 	}
 
 	@Override
