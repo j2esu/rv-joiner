@@ -31,7 +31,7 @@ public class AMain extends AppCompatActivity implements View.OnClickListener, Jo
 	private static final int ISSUES_TITLE_TYPE = 22;
 
 	private RecyclerView recyclerView;
-	private RvJoiner rvJoiner = new RvJoiner();
+	private RvJoiner rvJoiner = new RvJoiner();//auto update ON, stable ids ON
 	private NotesAdapter notesAdapter = new NotesAdapter();
 	private IssuesAdapter issuesAdapter = new IssuesAdapter(new RvJoiner.RealPositionProvider(rvJoiner));
 	private DataProvider dataProvider = new DataProvider();
@@ -44,12 +44,11 @@ public class AMain extends AppCompatActivity implements View.OnClickListener, Jo
 		recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
 		setLinearLayoutManager(recyclerView);
 		//construct joiner
-		rvJoiner.add(new JoinableLayout(R.layout.notes_title, NOTES_TITLE_TYPE, null, -2));
+		rvJoiner.add(new JoinableLayout(R.layout.notes_title, NOTES_TITLE_TYPE));
 		rvJoiner.add(new JoinableAdapter(notesAdapter, null));
-		rvJoiner.add(new JoinableLayout(R.layout.issues_title, ISSUES_TITLE_TYPE, null, -3));
-		rvJoiner.add(new JoinableAdapter(issuesAdapter, new int[]{
-				IssuesAdapter.VIEW_TYPE_TASK, IssuesAdapter.VIEW_TYPE_BUG
-		}));
+		rvJoiner.add(new JoinableLayout(R.layout.issues_title, ISSUES_TITLE_TYPE));
+		rvJoiner.add(new JoinableAdapter(issuesAdapter, IssuesAdapter.VIEW_TYPE_TASK,
+				IssuesAdapter.VIEW_TYPE_BUG));
 		//example of extra view initialization
 		rvJoiner.add(new JoinableLayout(R.layout.clickable, 0, new JoinableLayout.Callback() {
 			@Override
@@ -107,7 +106,8 @@ public class AMain extends AppCompatActivity implements View.OnClickListener, Jo
 	@Override
 	public void onClick(View v) {
 		//add new removable joinable to structure
-		rvJoiner.add(new JoinableLayout(R.layout.removable_item, 0, this, -System.currentTimeMillis()));//todo check stable id process
+		rvJoiner.add(new JoinableLayout(R.layout.removable_item, 0, this,
+				-System.currentTimeMillis()));//generate unique id
 		recyclerView.smoothScrollToPosition(rvJoiner.getAdapter().getItemCount());
 	}
 

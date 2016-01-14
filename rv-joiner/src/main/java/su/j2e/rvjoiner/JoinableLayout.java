@@ -31,13 +31,35 @@ public class JoinableLayout implements RvJoiner.Joinable {
 	 * @param layoutResId layout resource to inflate view
 	 * @param itemType type constant, or 0, or other value if you don't need it
 	 * @param callback callback if you want to customize view after inflating
-	 * @param stableId unique id if you need to use stable id feature (call setHasStableIds
+	 * @param stableId unique id if you need to use stable id feature (calls setHasStableIds(true)
 	 *                  on adapter automatically), or {@link RecyclerView#NO_ID} if no stable ids
 	 */
 	public JoinableLayout(@LayoutRes int layoutResId, int itemType, @Nullable Callback callback,
 						  long stableId) {
 		this.itemType = itemType;
 		adapter = new Adapter(layoutResId, callback, stableId);
+	}
+
+	/**
+	 * The same as {@link #JoinableLayout(int, int, Callback, long)} without stable id
+	 */
+	public JoinableLayout(@LayoutRes int layoutResId, int itemType, @Nullable Callback callback) {
+		this(layoutResId, itemType, callback, RecyclerView.NO_ID);
+	}
+
+	/**
+	 * The same as {@link #JoinableLayout(int, int, Callback, long)} with 0 type and without stable id
+	 */
+	public JoinableLayout(@LayoutRes int layoutResId, @Nullable Callback callback) {
+		this(layoutResId, 0, callback, RecyclerView.NO_ID);
+	}
+
+	/**
+	 * The same as {@link #JoinableLayout(int, int, Callback, long)} with null callback and without
+	 * stable id
+	 */
+	public JoinableLayout(@LayoutRes int layoutResId, int itemType) {
+		this(layoutResId, itemType, null, RecyclerView.NO_ID);
 	}
 
 	/**
