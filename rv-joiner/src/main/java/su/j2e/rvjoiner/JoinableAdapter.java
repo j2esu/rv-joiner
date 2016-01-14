@@ -52,7 +52,7 @@ public class JoinableAdapter implements RvJoiner.Joinable {
 	}
 
 	@Override
-	public int getType(int typeIndex) {
+	public int getTypeByIndex(int typeIndex) {
 		return mTypes[typeIndex];
 	}
 

@@ -45,7 +45,7 @@ public class RvJoiner {
 		/**
 		 * Get type id by type index
 		 */
-		int getType(int typeIndex);
+		int getTypeByIndex(int typeIndex);
 
 	}
 
@@ -346,8 +346,8 @@ public class RvJoiner {
 				for (int i = 0; i < diffJoinable.getTypeCount(); i++) {
 					int newTypeId = mLastGeneratedJoinedTypeId++;
 					mJoinedTypeToJoinable.put(newTypeId, diffJoinable);
-					mJoinedTypeToRealType.put(newTypeId, diffJoinable.getType(i));
-					realToJoinedTypes.put(diffJoinable.getType(i), newTypeId);
+					mJoinedTypeToRealType.put(newTypeId, diffJoinable.getTypeByIndex(i));
+					realToJoinedTypes.put(diffJoinable.getTypeByIndex(i), newTypeId);
 				}
 				mJoinableToRealToJoinedTypes.put(diffJoinable, realToJoinedTypes);
 			}
@@ -359,7 +359,6 @@ public class RvJoiner {
 		 * Should be called after any {@link #mHostAdapter} data set changing.
 		 */
 		private void postDataSetChanged() {
-			System.out.println("postDataChange");//todo del
 			mCurrentItemCount = 0;
 			mJoinedPosToJoinedType.clear();
 			mJoinedPosToRealPos.clear();
@@ -370,11 +369,11 @@ public class RvJoiner {
 				for (int i = 0; i < joinable.getAdapter().getItemCount(); i++) {
 					joinedPosArray[i] = mCurrentItemCount;
 					mCurrentItemCount++;
-					mJoinedPosToJoinedType.add(mJoinableToRealToJoinedTypes.get(joinable)
-							.get(joinable.getAdapter().getItemViewType(i)));
+					int itemRealType = joinable.getAdapter().getItemViewType(i);
+					int itemJoinedType = mJoinableToRealToJoinedTypes.get(joinable).get(itemRealType);
+					mJoinedPosToJoinedType.add(itemJoinedType);
 					mJoinedPosToRealPos.add(i);
 					mJoinedPosToJoinable.add(joinable);
-
 				}
 				mJoinableToJoinedPosArray.put(joinable, joinedPosArray);
 			}

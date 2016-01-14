@@ -37,7 +37,7 @@ public class JoinableLayout implements RvJoiner.Joinable {
 	public JoinableLayout(@LayoutRes int layoutResId, int itemType, @Nullable Callback callback,
 						  long stableId) {
 		mItemType = itemType;
-		mAdapter = new Adapter(layoutResId, callback, stableId);
+		mAdapter = new Adapter(layoutResId, itemType, callback, stableId);
 	}
 
 	/**
@@ -83,19 +83,21 @@ public class JoinableLayout implements RvJoiner.Joinable {
 	}
 
 	@Override
-	public int getType(int typeIndex) {
+	public int getTypeByIndex(int typeIndex) {
 		return mItemType;//doesn't matter index (we have only one)
 	}
 
 	private static class Adapter extends RecyclerView.Adapter<Adapter.LayoutVh> {
 
 		private int mLayoutResId;
+		private int mItemType;
 		private long mStableId = RecyclerView.NO_ID;
 		private Callback mCallback;
 
 		//pass stableId == RecyclerView.NO_ID if stable ids not used
-		private Adapter(int layoutResId, Callback callback, long stableId) {
+		private Adapter(int layoutResId, int itemType, Callback callback, long stableId) {
 			mLayoutResId = layoutResId;
+			mItemType = itemType;
 			mCallback = callback;
 			mStableId = stableId;
 			setHasStableIds(stableId != RecyclerView.NO_ID);
@@ -122,6 +124,11 @@ public class JoinableLayout implements RvJoiner.Joinable {
 		@Override
 		public long getItemId(int position) {
 			return mStableId;
+		}
+
+		@Override
+		public int getItemViewType(int position) {
+			return mItemType;
 		}
 
 		protected static class LayoutVh extends RecyclerView.ViewHolder {
