@@ -31,9 +31,9 @@ public class AMain extends AppCompatActivity implements View.OnClickListener, Jo
 	private static final int ISSUES_TITLE_TYPE = 22;
 
 	private RecyclerView recyclerView;
-	private RvJoiner rvJoiner;
+	private RvJoiner rvJoiner = new RvJoiner();//auto update ON, stable ids ON
 	private NotesAdapter notesAdapter = new NotesAdapter();
-	private IssuesAdapter issuesAdapter = new IssuesAdapter();
+	private IssuesAdapter issuesAdapter = new IssuesAdapter(new RvJoiner.RealPositionProvider(rvJoiner));
 	private DataProvider dataProvider = new DataProvider();
 
 	@Override
@@ -44,15 +44,13 @@ public class AMain extends AppCompatActivity implements View.OnClickListener, Jo
 		recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
 		setLinearLayoutManager(recyclerView);
 		//construct joiner
-		rvJoiner = new RvJoiner();
-		rvJoiner.add(new JoinableLayout(R.layout.notes_title, NOTES_TITLE_TYPE, null));
-		rvJoiner.add(new JoinableAdapter(notesAdapter, null));
-		rvJoiner.add(new JoinableLayout(R.layout.issues_title, ISSUES_TITLE_TYPE, null));
-		rvJoiner.add(new JoinableAdapter(issuesAdapter, new int[]{
-				IssuesAdapter.VIEW_TYPE_TASK, IssuesAdapter.VIEW_TYPE_BUG
-		}));
+		rvJoiner.add(new JoinableLayout(R.layout.notes_title, NOTES_TITLE_TYPE));
+		rvJoiner.add(new JoinableAdapter(notesAdapter));
+		rvJoiner.add(new JoinableLayout(R.layout.issues_title, ISSUES_TITLE_TYPE));
+		rvJoiner.add(new JoinableAdapter(issuesAdapter, IssuesAdapter.VIEW_TYPE_TASK,
+				IssuesAdapter.VIEW_TYPE_BUG));
 		//example of extra view initialization
-		rvJoiner.add(new JoinableLayout(R.layout.clickable, 0, new JoinableLayout.Callback() {
+		rvJoiner.add(new JoinableLayout(R.layout.clickable, new JoinableLayout.Callback() {
 			@Override
 			public void onInflateComplete(View view, ViewGroup parent) {
 				view.findViewById(R.id.clickable_btn).setOnClickListener(AMain.this);
@@ -98,7 +96,7 @@ public class AMain extends AppCompatActivity implements View.OnClickListener, Jo
 		gridLayoutManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
 			@Override
 			public int getSpanSize(int position) {
-				int realType = rvJoiner.getItemInfo(position).realType;
+				int realType = rvJoiner.getPositionInfo(position).realType;
 				return realType == NOTES_TITLE_TYPE || realType == ISSUES_TITLE_TYPE ? 2 : 1;
 			}
 		});
@@ -107,9 +105,9 @@ public class AMain extends AppCompatActivity implements View.OnClickListener, Jo
 
 	@Override
 	public void onClick(View v) {
-		//add new removable joinable to layout
-		rvJoiner.add(new JoinableLayout(R.layout.removable_item, 0, this));
-		recyclerView.smoothScrollToPosition(rvJoiner.getItemCount());
+		//add new removable joinable to structure (generate random id)
+		rvJoiner.add(new JoinableLayout(R.layout.removable_item, 0, this, -System.currentTimeMillis()),
+				rvJoiner.getJoinableCount() - 1);
 	}
 
 	@Override
@@ -118,9 +116,9 @@ public class AMain extends AppCompatActivity implements View.OnClickListener, Jo
 			@Override
 			public void onClick(View v) {
 				int viewPosition = recyclerView.getChildAdapterPosition(v);
-				RvJoiner.ItemInfo itemInfo = rvJoiner.getItemInfo(viewPosition);
+				RvJoiner.PositionInfo positionInfo = rvJoiner.getPositionInfo(viewPosition);
 				//remove joinable
-				rvJoiner.remove(itemInfo.joinable);
+				rvJoiner.remove(positionInfo.joinable);
 			}
 		});
 	}

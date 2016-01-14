@@ -5,5 +5,5 @@
 	<string name="clickable_btn_text">Add</string>
 	<string name="menu_linear_text">Linear</string>
 	<string name="menu_grid_text">Grid</string>
-	<string name="removable_item_text">Click to remove</string>
+	<string name="removable_item_text">You new adapter or layout\nClick to remove</string>
 </resources>

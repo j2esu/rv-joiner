@@ -1,6 +1,6 @@
 package su.j2e.rvjoinerdemo.model;
 
-public class Task extends AbsIssue {
+public class Task extends Issue {
 
 	@Override
 	public int getType() {

@@ -1,14 +1,18 @@
 package su.j2e.rvjoinerdemo.list;
 
+import android.content.Context;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.LinkedList;
 import java.util.List;
 
 import ru.java2e.android.rvadapterjoinerdemo.R;
+import su.j2e.rvjoiner.RvJoiner;
 import su.j2e.rvjoinerdemo.model.Bug;
 import su.j2e.rvjoinerdemo.model.Issue;
 import su.j2e.rvjoinerdemo.model.Task;
@@ -19,10 +23,13 @@ public class IssuesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 	public static final int VIEW_TYPE_BUG = 1;
 
 	private List<Issue> issues = new LinkedList<>();
+	private RvJoiner.RealPositionProvider realPositionProvider;
 
-	/**
-	 * Used to update adapter data
-	 */
+	public IssuesAdapter(RvJoiner.RealPositionProvider realPositionProvider) {
+		this.realPositionProvider = realPositionProvider;
+		setHasStableIds(true);
+	}
+
 	public void updateData(List<Issue> issues) {
 		this.issues = issues;
 		notifyDataSetChanged();
@@ -71,6 +78,21 @@ public class IssuesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 		}
 	}
 
+	@Override
+	public long getItemId(int position) {
+		return issues.get(position).getId();
+	}
+
+	private void onBugItemClick(int position) {
+		issues.remove(position);
+		notifyItemRemoved(position);
+	}
+
+	private void onTaskItemClick(int position) {
+		issues.add(position, new Bug());//ok, i shouldn't do this here, it should do data provider
+		notifyItemInserted(position);
+	}
+
 	protected class TaskVh extends RecyclerView.ViewHolder {
 
 		private final TextView descTv;
@@ -79,6 +101,13 @@ public class IssuesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 			super(LayoutInflater.from(parent.getContext())
 					.inflate(R.layout.task_item, parent, false));
 			descTv = (TextView) itemView.findViewById(R.id.task_item_desc);
+			itemView.setOnClickListener(new View.OnClickListener() {
+				@Override
+				public void onClick(View v) {
+					showIdToast(getItemId(), v.getContext());
+					onTaskItemClick(realPositionProvider.getRealPosition(getAdapterPosition()));
+				}
+			});
 		}
 
 		private void bind(Task task) {
@@ -95,11 +124,22 @@ public class IssuesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 			super(LayoutInflater.from(parent.getContext())
 					.inflate(R.layout.bug_item, parent, false));
 			descTv = (TextView) itemView.findViewById(R.id.bug_item_desc);
+			itemView.setOnClickListener(new View.OnClickListener() {
+				@Override
+				public void onClick(View v) {
+					showIdToast(getItemId(), v.getContext());
+					onBugItemClick(realPositionProvider.getRealPosition(getAdapterPosition()));
+				}
+			});
 		}
 
 		private void bind(Bug bug) {
 			descTv.setText(bug.getDescription());
 		}
+	}
+
+	private void showIdToast(long itemId, Context context) {
+		Toast.makeText(context, "id: " + itemId, Toast.LENGTH_SHORT).show();
 	}
 
 }
