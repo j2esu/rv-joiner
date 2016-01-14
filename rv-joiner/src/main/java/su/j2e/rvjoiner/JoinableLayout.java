@@ -24,8 +24,8 @@ public class JoinableLayout implements RvJoiner.Joinable {
 
 	}
 
-	private JoinableLayout.Adapter adapter;
-	private int itemType = 0;
+	private JoinableLayout.Adapter mAdapter;
+	private int mItemType = 0;
 
 	/**
 	 * @param layoutResId layout resource to inflate view
@@ -36,8 +36,8 @@ public class JoinableLayout implements RvJoiner.Joinable {
 	 */
 	public JoinableLayout(@LayoutRes int layoutResId, int itemType, @Nullable Callback callback,
 						  long stableId) {
-		this.itemType = itemType;
-		adapter = new Adapter(layoutResId, callback, stableId);
+		mItemType = itemType;
+		mAdapter = new Adapter(layoutResId, callback, stableId);
 	}
 
 	/**
@@ -74,7 +74,7 @@ public class JoinableLayout implements RvJoiner.Joinable {
 
 	@Override
 	public RecyclerView.Adapter getAdapter() {
-		return adapter;
+		return mAdapter;
 	}
 
 	@Override
@@ -84,38 +84,30 @@ public class JoinableLayout implements RvJoiner.Joinable {
 
 	@Override
 	public int getType(int typeIndex) {
-		return itemType;//doesn't matter index (we have only one)
-	}
-
-	@Override
-	public int getTypeIndex(int type) {
-		return 0;//the only type, so first index
+		return mItemType;//doesn't matter index (we have only one)
 	}
 
 	private static class Adapter extends RecyclerView.Adapter<Adapter.LayoutVh> {
 
-		private int layoutResId;
-		private long stableId = RecyclerView.NO_ID;
-
-		//init default callback to avoid null checking
-		private Callback callback = new Callback() {
-			@Override
-			public void onInflateComplete(View view, ViewGroup parent) {}
-		};
+		private int mLayoutResId;
+		private long mStableId = RecyclerView.NO_ID;
+		private Callback mCallback;
 
 		//pass stableId == RecyclerView.NO_ID if stable ids not used
 		private Adapter(int layoutResId, Callback callback, long stableId) {
-			this.layoutResId = layoutResId;
-			this.callback = (callback != null ? callback : this.callback);
-			this.stableId = stableId;
+			mLayoutResId = layoutResId;
+			mCallback = callback;
+			mStableId = stableId;
 			setHasStableIds(stableId != RecyclerView.NO_ID);
 		}
 
 		@Override
 		public LayoutVh onCreateViewHolder(ViewGroup parent, int viewType) {
 			View view = LayoutInflater.from(parent.getContext())
-					.inflate(layoutResId, parent, false);
-			callback.onInflateComplete(view, parent);
+					.inflate(mLayoutResId, parent, false);
+			if (mCallback != null) {
+				mCallback.onInflateComplete(view, parent);
+			}
 			return new LayoutVh(view);
 		}
 
@@ -129,11 +121,7 @@ public class JoinableLayout implements RvJoiner.Joinable {
 
 		@Override
 		public long getItemId(int position) {
-			return stableId;
-		}
-
-		private void setStableIdInternal(long id) {
-			stableId = id;
+			return mStableId;
 		}
 
 		protected static class LayoutVh extends RecyclerView.ViewHolder {

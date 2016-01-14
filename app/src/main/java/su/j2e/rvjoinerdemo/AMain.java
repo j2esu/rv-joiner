@@ -45,17 +45,17 @@ public class AMain extends AppCompatActivity implements View.OnClickListener, Jo
 		setLinearLayoutManager(recyclerView);
 		//construct joiner
 		rvJoiner.add(new JoinableLayout(R.layout.notes_title, NOTES_TITLE_TYPE));
-		rvJoiner.add(new JoinableAdapter(notesAdapter, null));
+		rvJoiner.add(new JoinableAdapter(notesAdapter));
 		rvJoiner.add(new JoinableLayout(R.layout.issues_title, ISSUES_TITLE_TYPE));
 		rvJoiner.add(new JoinableAdapter(issuesAdapter, IssuesAdapter.VIEW_TYPE_TASK,
 				IssuesAdapter.VIEW_TYPE_BUG));
 		//example of extra view initialization
-		rvJoiner.add(new JoinableLayout(R.layout.clickable, 0, new JoinableLayout.Callback() {
+		rvJoiner.add(new JoinableLayout(R.layout.clickable, new JoinableLayout.Callback() {
 			@Override
 			public void onInflateComplete(View view, ViewGroup parent) {
 				view.findViewById(R.id.clickable_btn).setOnClickListener(AMain.this);
 			}
-		}, -4));
+		}));
 		//set join adapter to recycler view
 		recyclerView.setAdapter(rvJoiner.getAdapter());
 		//update data in adapters at any time (right now in this example)
@@ -105,10 +105,9 @@ public class AMain extends AppCompatActivity implements View.OnClickListener, Jo
 
 	@Override
 	public void onClick(View v) {
-		//add new removable joinable to structure
-		rvJoiner.add(new JoinableLayout(R.layout.removable_item, 0, this,
-				- System.currentTimeMillis()), rvJoiner.getJoinableCount() - 1);
-//		recyclerView.smoothScrollToPosition(rvJoiner.getAdapter().getItemCount());
+		//add new removable joinable to structure (generate random id)
+		rvJoiner.add(new JoinableLayout(R.layout.removable_item, 0, this, -System.currentTimeMillis()),
+				rvJoiner.getJoinableCount() - 1);
 	}
 
 	@Override

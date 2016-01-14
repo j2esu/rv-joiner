@@ -5,6 +5,7 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.RecyclerView.ViewHolder;
 import android.util.Log;
 import android.util.SparseArray;
+import android.util.SparseIntArray;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -42,14 +43,9 @@ public class RvJoiner {
 		int getTypeCount();
 
 		/**
-		 * Get type constant by type index
+		 * Get type id by type index
 		 */
 		int getType(int typeIndex);
-
-		/**
-		 * Get type index by type constant
-		 */
-		int getTypeIndex(int type);
 
 	}
 
@@ -229,24 +225,21 @@ public class RvJoiner {
 
 		private static final String TAG = HostAdapter.class.getName();
 
-		//should be unique
-		private List<Joinable> joinables = new ArrayList<>();
+		private List<Joinable> mJoinables = new ArrayList<>();//should be unique
+		private SparseArray<PositionInfo> mItemInfoCache = new SparseArray<>();
+		private int mLastGeneratedJoinedTypeId = 0;
 
-		private SparseArray<PositionInfo> itemInfoCache = new SparseArray<>();
+		//update on structure modifications
+		private SparseIntArray mJoinedTypeToRealType = new SparseIntArray();
+		private SparseArray<Joinable> mJoinedTypeToJoinable = new SparseArray<>();
+		private Map<Joinable, SparseIntArray> mJoinableToRealToJoinedTypes = new HashMap<>();
 
-		//update once in constructor
-		//this lists "maps" joined type (position) on different values
-		private List<Integer> joinedTypeToRealType = new ArrayList<>();
-		private List<Joinable> joinedTypeToJoinable = new ArrayList<>();
-
-		//update after every data set change
-		//this lists "maps" joined position (position) different values
-		private int itemCount = 0;
-		private List<Integer> joinedPosToJoinedType = new ArrayList<>();
-		private List<Integer> joinedPosToRealPos = new ArrayList<>();
-		private List<Joinable> joinedPosToJoinable = new ArrayList<>();
-
-		private Map<Joinable, int[]> joinableToJoinedPosArray = new HashMap<>();
+		//update on every data change
+		private int mCurrentItemCount = 0;
+		private List<Integer> mJoinedPosToJoinedType = new ArrayList<>();
+		private List<Integer> mJoinedPosToRealPos = new ArrayList<>();
+		private List<Joinable> mJoinedPosToJoinable = new ArrayList<>();
+		private Map<Joinable, int[]> mJoinableToJoinedPosArray = new HashMap<>();
 
 		private HostAdapter(boolean hasStableIds) {
 			setHasStableIds(hasStableIds);
@@ -280,42 +273,42 @@ public class RvJoiner {
 
 		@Override
 		public ViewHolder onCreateViewHolder(ViewGroup parent, int joinedType) {
-			return joinedTypeToJoinable.get(joinedType).getAdapter()
-					.onCreateViewHolder(parent, joinedTypeToRealType.get(joinedType));
+			return mJoinedTypeToJoinable.get(joinedType).getAdapter()
+					.onCreateViewHolder(parent, mJoinedTypeToRealType.get(joinedType));
 		}
 
 		@Override
 		@SuppressWarnings("unchecked")
 		public void onBindViewHolder(ViewHolder holder, int joinedPosition) {
-			joinedPosToJoinable.get(joinedPosition).getAdapter()
-					.onBindViewHolder(holder, joinedPosToRealPos.get(joinedPosition));
+			mJoinedPosToJoinable.get(joinedPosition).getAdapter()
+					.onBindViewHolder(holder, mJoinedPosToRealPos.get(joinedPosition));
 		}
 
 		@Override
 		public long getItemId(int joinedPosition) {
-			return joinedPosToJoinable.get(joinedPosition).getAdapter()
-					.getItemId(joinedPosToRealPos.get(joinedPosition));
+			return mJoinedPosToJoinable.get(joinedPosition).getAdapter()
+					.getItemId(mJoinedPosToRealPos.get(joinedPosition));
 		}
 
 		@Override
 		public int getItemCount() {
-			return itemCount;
+			return mCurrentItemCount;
 		}
 
 		@Override
 		public int getItemViewType(int joinedPosition) {
-			return joinedPosToJoinedType.get(joinedPosition);
+			return mJoinedPosToJoinedType.get(joinedPosition);
 		}
 
 		private int getJoinableCountInternal() {
-			return joinables.size();
+			return mJoinables.size();
 		}
 
 		private boolean addJoinableToStructure(@NonNull Joinable joinable, int location) {
-			boolean alreadyExist = joinables.contains(joinable);
+			boolean alreadyExist = mJoinables.contains(joinable);
 			if (!alreadyExist) {
-				joinables.add(location, joinable);
-				postStructureChanged();
+				mJoinables.add(location, joinable);
+				postStructureChanged(joinable);
 				int positionStart = getJoinedPositionInternal(0, joinable);
 				if (positionStart != RecyclerView.NO_POSITION) {
 					notifyItemRangeInserted(positionStart, joinable.getAdapter().getItemCount());
@@ -325,15 +318,11 @@ public class RvJoiner {
 			return false;
 		}
 
-		private boolean addJoinableToStructure(@NonNull Joinable joinable) {
-			return addJoinableToStructure(joinable, joinables.size());
-		}
-
 		private boolean removeJoinableFromStructure(@NonNull Joinable joinable) {
-			if (joinables.remove(joinable)) {//if  was removed
+			if (mJoinables.remove(joinable)) {//if  was removed
 				//save this before removing
 				int positionStart = getJoinedPositionInternal(0, joinable);
-				postStructureChanged();
+				postStructureChanged(joinable);
 				if (positionStart != RecyclerView.NO_POSITION) {
 					notifyItemRangeRemoved(positionStart, joinable.getAdapter().getItemCount());
 				}
@@ -343,16 +332,18 @@ public class RvJoiner {
 		}
 
 		/**
-		 * Should be called after any structure changing (changes in {@link #joinables}).
+		 * Should be called after any structure changing (changes in {@link #mJoinables}).
 		 */
-		private void postStructureChanged() {
-			joinedTypeToJoinable.clear();
-			joinedTypeToRealType.clear();
-			for (Joinable joinable : joinables) {
-				for (int i = 0; i < joinable.getTypeCount(); i++) {
-					joinedTypeToJoinable.add(joinable);
-					joinedTypeToRealType.add(joinable.getType(i));
+		private void postStructureChanged(Joinable diffJoinable) {
+			if (mJoinables.contains(diffJoinable)) {//if was added
+				SparseIntArray realToJoinedTypes = new SparseIntArray(diffJoinable.getTypeCount());
+				for (int i = 0; i < diffJoinable.getTypeCount(); i++) {
+					int newTypeId = mLastGeneratedJoinedTypeId++;
+					mJoinedTypeToJoinable.put(newTypeId, diffJoinable);
+					mJoinedTypeToRealType.put(newTypeId, diffJoinable.getType(i));
+					realToJoinedTypes.put(diffJoinable.getType(i), newTypeId);
 				}
+				mJoinableToRealToJoinedTypes.put(diffJoinable, realToJoinedTypes);
 			}
 			//structure modifications changes data, so we need to call
 			postDataSetChanged();
@@ -362,41 +353,40 @@ public class RvJoiner {
 		 * Should be called after any {@link #hostAdapter} data set changing.
 		 */
 		private void postDataSetChanged() {
-			itemCount = 0;
-			joinedPosToJoinedType.clear();
-			joinedPosToRealPos.clear();
-			joinedPosToJoinable.clear();
-			joinableToJoinedPosArray.clear();//todo really needed?
-			int prevTypeCount = 0;
-			for (Joinable joinable : joinables) {
+			mCurrentItemCount = 0;
+			mJoinedPosToJoinedType.clear();
+			mJoinedPosToRealPos.clear();
+			mJoinedPosToJoinable.clear();
+			mJoinableToJoinedPosArray.clear();
+			for (Joinable joinable : mJoinables) {
 				int[] joinedPosArray = new int[joinable.getAdapter().getItemCount()];
 				for (int i = 0; i < joinable.getAdapter().getItemCount(); i++) {
-					joinedPosArray[i] = itemCount;
-					itemCount++;
-					joinedPosToJoinedType.add(prevTypeCount +
-							joinable.getTypeIndex(joinable.getAdapter().getItemViewType(i)));
-					joinedPosToRealPos.add(i);
-					joinedPosToJoinable.add(joinable);
+					joinedPosArray[i] = mCurrentItemCount;
+					mCurrentItemCount++;
+					mJoinedPosToJoinedType.add(mJoinableToRealToJoinedTypes.get(joinable)
+							.get(joinable.getAdapter().getItemViewType(i)));
+					mJoinedPosToRealPos.add(i);
+					mJoinedPosToJoinable.add(joinable);
+
 				}
-				prevTypeCount += joinable.getTypeCount();
-				joinableToJoinedPosArray.put(joinable, joinedPosArray);
+				mJoinableToJoinedPosArray.put(joinable, joinedPosArray);
 			}
-			itemInfoCache.clear();
+			mItemInfoCache.clear();
 		}
 
 		//return null, if position doesn't exist.
 		private PositionInfo getPositionInfoInternal(int joinedPosition) {
-			PositionInfo positionInfo = itemInfoCache.get(joinedPosition);
+			PositionInfo positionInfo = mItemInfoCache.get(joinedPosition);
 			if (positionInfo == null) {
 				try {
 					positionInfo = new PositionInfo(
 							joinedPosition,
-							joinedPosToRealPos.get(joinedPosition),
-							joinedPosToJoinable.get(joinedPosition),
-							joinedPosToJoinedType.get(joinedPosition),
-							joinedTypeToRealType.get(joinedPosToJoinedType.get(joinedPosition))
+							mJoinedPosToRealPos.get(joinedPosition),
+							mJoinedPosToJoinable.get(joinedPosition),
+							mJoinedPosToJoinedType.get(joinedPosition),
+							mJoinedTypeToRealType.get(mJoinedPosToJoinedType.get(joinedPosition))
 					);
-					itemInfoCache.put(joinedPosition, positionInfo);
+					mItemInfoCache.put(joinedPosition, positionInfo);
 				} catch (IndexOutOfBoundsException ex) {
 					Log.e(TAG, "getPositionInfoInternal: position doesn't exist: " + joinedPosition, ex);
 				}
@@ -406,9 +396,9 @@ public class RvJoiner {
 
 		//return RecyclerView.NO_POSITION if position doesn't exist
 		private int getJoinedPositionInternal(int realPosition, Joinable joinable) {
-			int[] joinedPosArray = joinableToJoinedPosArray.get(joinable);
+			int[] joinedPosArray = mJoinableToJoinedPosArray.get(joinable);
 			if (joinedPosArray != null && realPosition >= 0 && realPosition < joinedPosArray.length) {
-				return joinableToJoinedPosArray.get(joinable)[realPosition];
+				return mJoinableToJoinedPosArray.get(joinable)[realPosition];
 			} else {
 				return RecyclerView.NO_POSITION;
 			}
@@ -421,39 +411,39 @@ public class RvJoiner {
 	 */
 	private static class DataObserver extends RecyclerView.AdapterDataObserver {
 
-		private Joinable joinable;
-		private RvJoiner rvJoiner;
+		private Joinable mJoinable;
+		private RvJoiner mRvJoiner;
 
 		private DataObserver(Joinable joinable, RvJoiner rvJoiner) {
-			this.joinable = joinable;
-			this.rvJoiner = rvJoiner;
+			mJoinable = joinable;
+			mRvJoiner = rvJoiner;
 		}
 
 		@Override
 		public void onChanged() {
 			//update only items in correspond adapter
-			onItemRangeChanged(0, joinable.getAdapter().getItemCount());
+			onItemRangeChanged(0, mJoinable.getAdapter().getItemCount());
 		}
 
 		@Override
 		public void onItemRangeChanged(int positionStart, int itemCount) {
-			rvJoiner.getAdapter().notifyItemRangeChanged(getJoinedPosition(positionStart), itemCount);
+			mRvJoiner.getAdapter().notifyItemRangeChanged(getJoinedPosition(positionStart), itemCount);
 		}
 
 		@Override
 		public void onItemRangeInserted(int positionStart, int itemCount) {
-			rvJoiner.getAdapter().notifyItemRangeInserted(getJoinedPosition(positionStart), itemCount);
+			mRvJoiner.getAdapter().notifyItemRangeInserted(getJoinedPosition(positionStart), itemCount);
 		}
 
 		@Override
 		public void onItemRangeRemoved(int positionStart, int itemCount) {
-			rvJoiner.getAdapter().notifyItemRangeRemoved(getJoinedPosition(positionStart), itemCount);
+			mRvJoiner.getAdapter().notifyItemRangeRemoved(getJoinedPosition(positionStart), itemCount);
 		}
 
 		@Override
 		public void onItemRangeMoved(int fromPosition, int toPosition, int itemCount) {
 			if (itemCount == 1) {
-				rvJoiner.getAdapter().notifyItemMoved(getJoinedPosition(fromPosition),
+				mRvJoiner.getAdapter().notifyItemMoved(getJoinedPosition(fromPosition),
 						getJoinedPosition(toPosition));
 			} else if (itemCount > 1) {
 				onChanged();//no notifyItemRangeMoved method by now
@@ -462,7 +452,7 @@ public class RvJoiner {
 
 		//just a wrapper to be short
 		private int getJoinedPosition(int realPosition) {
-			return rvJoiner.getJoinedPosition(realPosition, joinable);
+			return mRvJoiner.getJoinedPosition(realPosition, mJoinable);
 		}
 
 	}
