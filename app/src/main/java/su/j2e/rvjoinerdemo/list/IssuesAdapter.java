@@ -1,12 +1,11 @@
 package su.j2e.rvjoinerdemo.list;
 
-import android.content.Context;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -17,10 +16,18 @@ import su.j2e.rvjoinerdemo.model.Bug;
 import su.j2e.rvjoinerdemo.model.Issue;
 import su.j2e.rvjoinerdemo.model.Task;
 
+/**
+ * This adapter uses {@link su.j2e.rvjoiner.RvJoiner.RealPositionProvider} in conjunction with
+ * {@link RecyclerView.ViewHolder#getAdapterPosition()} to detect position of clicked view.
+ * If this adapter will be used without {@link RvJoiner}, you need just pass null to constructor
+ * {@link su.j2e.rvjoiner.RvJoiner.RealPositionProvider#RealPositionProvider(RvJoiner)} and
+ * no code changes needed
+ */
 public class IssuesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
 	public static final int VIEW_TYPE_TASK = 0;
 	public static final int VIEW_TYPE_BUG = 1;
+	private static final String TAG = IssuesAdapter.class.getName();
 
 	private List<Issue> issues = new LinkedList<>();
 	private RvJoiner.RealPositionProvider realPositionProvider;
@@ -104,7 +111,7 @@ public class IssuesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 			itemView.setOnClickListener(new View.OnClickListener() {
 				@Override
 				public void onClick(View v) {
-					showIdToast(getItemId(), v.getContext());
+					Log.d(TAG, "onClick: id " + getItemId());
 					onTaskItemClick(realPositionProvider.getRealPosition(getAdapterPosition()));
 				}
 			});
@@ -127,7 +134,7 @@ public class IssuesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 			itemView.setOnClickListener(new View.OnClickListener() {
 				@Override
 				public void onClick(View v) {
-					showIdToast(getItemId(), v.getContext());
+					Log.d(TAG, "onClick: id" + getItemId());
 					onBugItemClick(realPositionProvider.getRealPosition(getAdapterPosition()));
 				}
 			});
@@ -136,10 +143,6 @@ public class IssuesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 		private void bind(Bug bug) {
 			descTv.setText(bug.getDescription());
 		}
-	}
-
-	private void showIdToast(long itemId, Context context) {
-		Toast.makeText(context, "id: " + itemId, Toast.LENGTH_SHORT).show();
 	}
 
 }
