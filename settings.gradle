@@ -1,1 +1,1 @@
-include ':full-demo', ':rv-joiner-lib'
+include ':full-demo', ':rv-joiner-lib', ':get-started-app'
