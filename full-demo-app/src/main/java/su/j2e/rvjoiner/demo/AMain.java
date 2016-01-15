@@ -33,7 +33,7 @@ public class AMain extends AppCompatActivity implements View.OnClickListener, Jo
 	private static final int ISSUES_TITLE_TYPE = 22;
 
 	private RecyclerView recyclerView;
-	private RvJoiner rvJoiner = new RvJoiner();//auto update ON, stable ids ON
+	private RvJoiner rvJoiner = new RvJoiner(true);//auto update ON, stable ids ON
 	private NotesAdapter notesAdapter = new NotesAdapter();
 	private IssuesAdapter issuesAdapter = new IssuesAdapter(new RvJoiner.RealPositionProvider(rvJoiner));
 	private DataProvider dataProvider = new DataProvider();
