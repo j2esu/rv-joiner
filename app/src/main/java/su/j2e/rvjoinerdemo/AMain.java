@@ -23,6 +23,8 @@ import su.j2e.rvjoinerdemo.list.NotesAdapter;
  * Use menu to switch between linear and grid layout manager.
  * Button at bottom of an app tests addition and deleting of Joinables. <b>NOTE:</b> this is not a
  * way of adding data to the list, update data in adapter to do this! I hope you understand :)
+ * Click on notes item tests item change.
+ * Click on issues test insertion and removing (2 types do different things).
  */
 public class AMain extends AppCompatActivity implements View.OnClickListener, JoinableLayout.Callback {
 

@@ -26,6 +26,13 @@ import java.util.Map;
  * 5. If auto update ON (default constructor) join hostAdapter reflects all your data updates (or you
  * can use notify methods on it to update data manually if using {@link RvJoiner#RvJoiner(boolean, boolean)})
  * </pre>
+ * If you have joined position and want to get info (such a corresponded joinable, type and
+ * real position), you can use {@link RvJoiner#getPositionInfo(int)}.
+ * @see su.j2e.rvjoiner.RvJoiner.Joinable
+ * @see JoinableAdapter
+ * @see JoinableLayout
+ * @see su.j2e.rvjoiner.RvJoiner.PositionInfo
+ * @see su.j2e.rvjoiner.RvJoiner.RealPositionProvider
  */
 public class RvJoiner {
 
