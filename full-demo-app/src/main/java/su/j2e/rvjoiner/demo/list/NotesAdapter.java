@@ -1,4 +1,4 @@
-package su.j2e.rvjoinerdemo.list;
+package su.j2e.rvjoiner.demo.list;
 
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.ListIterator;
 
 import ru.java2e.android.rvadapterjoinerdemo.R;
-import su.j2e.rvjoinerdemo.model.Note;
+import su.j2e.rvjoiner.demo.model.Note;
 
 /**
  * This adapter changes items on click. To get position of clicked element it uses

@@ -1,4 +1,4 @@
-package su.j2e.rvjoinerdemo;
+package su.j2e.rvjoiner.demo;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;

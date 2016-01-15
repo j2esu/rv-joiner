@@ -1,4 +1,4 @@
-package su.j2e.rvjoinerdemo.model;
+package su.j2e.rvjoiner.demo.model;
 
 public class Task extends Issue {
 

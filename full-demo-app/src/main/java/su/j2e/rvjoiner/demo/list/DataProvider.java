@@ -1,12 +1,12 @@
-package su.j2e.rvjoinerdemo.list;
+package su.j2e.rvjoiner.demo.list;
 
 import java.util.LinkedList;
 import java.util.List;
 
-import su.j2e.rvjoinerdemo.model.Bug;
-import su.j2e.rvjoinerdemo.model.Issue;
-import su.j2e.rvjoinerdemo.model.Note;
-import su.j2e.rvjoinerdemo.model.Task;
+import su.j2e.rvjoiner.demo.model.Bug;
+import su.j2e.rvjoiner.demo.model.Issue;
+import su.j2e.rvjoiner.demo.model.Note;
+import su.j2e.rvjoiner.demo.model.Task;
 
 
 public class DataProvider {

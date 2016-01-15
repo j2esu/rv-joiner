@@ -1,6 +1,6 @@
-package su.j2e.rvjoinerdemo.model;
+package su.j2e.rvjoiner.demo.model;
 
-import su.j2e.rvjoinerdemo.Util;
+import su.j2e.rvjoiner.demo.Util;
 
 public class Note extends DomainObject {
 

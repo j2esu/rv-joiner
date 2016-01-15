@@ -1,4 +1,4 @@
-package su.j2e.rvjoinerdemo;
+package su.j2e.rvjoiner.demo;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -14,9 +14,9 @@ import ru.java2e.android.rvadapterjoinerdemo.R;
 import su.j2e.rvjoiner.JoinableAdapter;
 import su.j2e.rvjoiner.JoinableLayout;
 import su.j2e.rvjoiner.RvJoiner;
-import su.j2e.rvjoinerdemo.list.DataProvider;
-import su.j2e.rvjoinerdemo.list.IssuesAdapter;
-import su.j2e.rvjoinerdemo.list.NotesAdapter;
+import su.j2e.rvjoiner.demo.list.DataProvider;
+import su.j2e.rvjoiner.demo.list.IssuesAdapter;
+import su.j2e.rvjoiner.demo.list.NotesAdapter;
 
 /**
  * Main activity for demo app.

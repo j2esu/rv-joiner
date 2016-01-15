@@ -1,4 +1,4 @@
-package su.j2e.rvjoinerdemo.list;
+package su.j2e.rvjoiner.demo.list;
 
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -12,9 +12,9 @@ import java.util.List;
 
 import ru.java2e.android.rvadapterjoinerdemo.R;
 import su.j2e.rvjoiner.RvJoiner;
-import su.j2e.rvjoinerdemo.model.Bug;
-import su.j2e.rvjoinerdemo.model.Issue;
-import su.j2e.rvjoinerdemo.model.Task;
+import su.j2e.rvjoiner.demo.model.Bug;
+import su.j2e.rvjoiner.demo.model.Issue;
+import su.j2e.rvjoiner.demo.model.Task;
 
 /**
  * This adapter uses {@link su.j2e.rvjoiner.RvJoiner.RealPositionProvider} in conjunction with

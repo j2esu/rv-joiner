@@ -1,4 +1,4 @@
-package su.j2e.rvjoinerdemo;
+package su.j2e.rvjoiner.demo;
 
 import java.util.Random;
 
