@@ -60,7 +60,7 @@ public class RvJoiner {
 	private static final String TAG = RvJoiner.class.getName();
 
 	private HostAdapter mHostAdapter;
-	private boolean mAutoUpdate = true;
+	private boolean mAutoUpdate;
 
 	//to find correspond observer for unregister
 	private Map<Joinable, DataObserver> mJoinableToObserver = new HashMap<>();
@@ -68,7 +68,10 @@ public class RvJoiner {
 	/**
 	 * @param autoUpdate if true, joiner will listen for data updates in joined adapters,
 	 *                   otherwise you have to call notify methods manually
-	 * @param hasStableIds true if you want to use stable ids
+	 * @param hasStableIds true if you want to use stable ids. Be careful, if true all your adapters
+	 *                     should have stable ids, otherwise unpredictable behaviour can occurs.
+	 *                     Note, that you can't set this in other time, because observers will be
+	 *                     added to join adapter
 	 */
 	public RvJoiner(boolean autoUpdate, boolean hasStableIds) {
 		mAutoUpdate = autoUpdate;
@@ -76,10 +79,18 @@ public class RvJoiner {
 	}
 
 	/**
-	 * The same as {@link #RvJoiner(boolean, boolean)} with auto update TRUE and stable ids TRUE
+	 * The same as {@link #RvJoiner(boolean, boolean)} with auto update TRUE and stable ids FALSE
 	 */
 	public RvJoiner() {
-		this(true, true);
+		this(true, false);
+	}
+
+	/**
+	 * The same as {@link #RvJoiner(boolean, boolean)} with auto update TRUE
+	 * @param hasStableIds whether support stable ids
+	 */
+	public RvJoiner(boolean hasStableIds) {
+		this(true, hasStableIds);
 	}
 
 	public int getJoinableCount() {
@@ -95,7 +106,7 @@ public class RvJoiner {
 	 * @throws IndexOutOfBoundsException if location < 0 || location > {@link #getJoinableCount()}
 	 */
 	public boolean add(Joinable joinable, int location) {
-		if (joinable == null) throw new IllegalArgumentException("Joinable can't be null");
+		if (joinable == null) return false;
 		boolean wasAdded = mHostAdapter.addJoinableInternal(joinable, location);
 		if (wasAdded && mAutoUpdate) {
 			try {//avoid "observer was already registered" exception
