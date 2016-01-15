@@ -84,14 +84,14 @@ public class JoinableLayout implements RvJoiner.Joinable {
 
 	@Override
 	public int getTypeByIndex(int typeIndex) {
-		return mItemType;//doesn't matter index (we have only one)
+		return mItemType;//doesn't matter index (we have only one type)
 	}
 
 	private static class Adapter extends RecyclerView.Adapter<Adapter.LayoutVh> {
 
 		private int mLayoutResId;
 		private int mItemType;
-		private long mStableId = RecyclerView.NO_ID;
+		private long mStableId;
 		private Callback mCallback;
 
 		//pass stableId == RecyclerView.NO_ID if stable ids not used
@@ -114,7 +114,7 @@ public class JoinableLayout implements RvJoiner.Joinable {
 		}
 
 		@Override
-		public void onBindViewHolder(LayoutVh holder, int position) {}
+		public void onBindViewHolder(LayoutVh holder, int position) {}//no binding needed
 
 		@Override
 		public int getItemCount() {

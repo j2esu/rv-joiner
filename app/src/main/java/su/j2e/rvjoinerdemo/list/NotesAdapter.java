@@ -59,6 +59,7 @@ public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.NoteVh> {
 				@Override
 				public void onClick(View v) {
 					Toast.makeText(v.getContext(), "Id: " + getItemId(), Toast.LENGTH_SHORT).show();
+					//todo change note
 				}
 			});
 		}

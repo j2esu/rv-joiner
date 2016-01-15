@@ -26,8 +26,6 @@ import java.util.Map;
  * 5. If auto update ON (default constructor) join hostAdapter reflects all your data updates (or you
  * can use notify methods on it to update data manually if using {@link RvJoiner#RvJoiner(boolean, boolean)})
  * </pre>
- * Note, that if you use stable ids you should call {@link RecyclerView.Adapter#setHasStableIds(boolean)}
- * on the join adapter you received via {@link RvJoiner#getAdapter()}
  */
 public class RvJoiner {
 
@@ -40,10 +38,13 @@ public class RvJoiner {
 
 		RecyclerView.Adapter getAdapter();
 
+		/**
+		 * Returns type count for adapter received via {@link #getAdapter()}
+		 */
 		int getTypeCount();
 
 		/**
-		 * Get type id by type index
+		 * Gets type id by type index (from 0 inclusive to {@link #getTypeCount()} exclusive)
 		 */
 		int getTypeByIndex(int typeIndex);
 
@@ -84,10 +85,11 @@ public class RvJoiner {
 	 * @param location location from [0 to {@link #getJoinableCount()}]
 	 * @return false if already added
 	 * @throws IllegalArgumentException if joinable is null
+	 * @throws IndexOutOfBoundsException if location < 0 || location > {@link #getJoinableCount()}
 	 */
 	public boolean add(Joinable joinable, int location) {
 		if (joinable == null) throw new IllegalArgumentException("Joinable can't be null");
-		boolean wasAdded = mHostAdapter.addJoinableToStructure(joinable, location);
+		boolean wasAdded = mHostAdapter.addJoinableInternal(joinable, location);
 		if (wasAdded && mAutoUpdate) {
 			try {//avoid "observer was already registered" exception
 				if (mJoinableToObserver.get(joinable) == null) {//if no current observer
@@ -125,7 +127,7 @@ public class RvJoiner {
 				Log.d(TAG, "remove: observer not registered");
 			}
 		}
-		return mHostAdapter.removeJoinableFromStructure(joinable);
+		return mHostAdapter.removeJoinableInternal(joinable);
 	}
 
 	/**
@@ -311,27 +313,24 @@ public class RvJoiner {
 			return RecyclerView.NO_POSITION;
 		}
 
-		private boolean addJoinableToStructure(@NonNull Joinable joinable, int location) {
+		private boolean addJoinableInternal(@NonNull Joinable joinable, int location) {
 			if (!mJoinables.contains(joinable)) {
 				mJoinables.add(location, joinable);
-				postStructureChanged(joinable, false);//false, because redundant (notify calls it)
+				postStructureChanged(joinable);
 				int positionStart = getJoinableStartPosition(joinable);
-				if (positionStart != RecyclerView.NO_POSITION) {
-					notifyItemRangeInserted(positionStart, joinable.getAdapter().getItemCount());
-				}
+				notifyItemRangeInserted(positionStart, joinable.getAdapter().getItemCount());
 				return true;
 			}
 			return false;
 		}
 
-		private boolean removeJoinableFromStructure(@NonNull Joinable joinable) {
+		private boolean removeJoinableInternal(@NonNull Joinable joinable) {
 			//save this before removing
 			int positionStart = getJoinableStartPosition(joinable);
-			if (mJoinables.remove(joinable)) {//if  was removed
-				postStructureChanged(joinable, false);//false, because redundant (notify calls it)
-				if (positionStart != RecyclerView.NO_POSITION) {
-					notifyItemRangeRemoved(positionStart, joinable.getAdapter().getItemCount());
-				}
+			if (positionStart != RecyclerView.NO_POSITION) {//if exist
+				mJoinables.remove(joinable);
+				postStructureChanged(joinable);
+				notifyItemRangeRemoved(positionStart, joinable.getAdapter().getItemCount());
 				return true;
 			}
 			return false;
@@ -339,8 +338,10 @@ public class RvJoiner {
 
 		/**
 		 * Should be called after any structure changing (changes in {@link #mJoinables}).
+		 * Structure modifications changes data, so call notify method after using this method, or
+		 * call {@link #postDataSetChanged()}
 		 */
-		private void postStructureChanged(Joinable diffJoinable, boolean updateData) {
+		private void postStructureChanged(Joinable diffJoinable) {
 			if (mJoinables.contains(diffJoinable)) {//if was added
 				SparseIntArray realToJoinedTypes = new SparseIntArray(diffJoinable.getTypeCount());
 				for (int i = 0; i < diffJoinable.getTypeCount(); i++) {
@@ -351,8 +352,6 @@ public class RvJoiner {
 				}
 				mJoinableToRealToJoinedTypes.put(diffJoinable, realToJoinedTypes);
 			}
-			//structure modifications changes data, but can configure this call for extra situations
-			if (updateData) postDataSetChanged();
 		}
 
 		/**

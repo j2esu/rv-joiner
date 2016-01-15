@@ -1,4 +1,4 @@
-// ./gradlew clean build generateRelease
+//running: gradlew clean build generateRelease
 apply plugin: 'maven'
 
 def groupId = project.PUBLISH_GROUP_ID
