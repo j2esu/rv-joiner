@@ -105,6 +105,6 @@ I'm working on this topic and more detailed description, but all examples alread
 
 ## License
 
-Library is distributed under Apache 2.0 license, see LICENSE.txt
+Library is distributed under Apache 2.0 license, see [LICENSE.txt](LICENSE.txt)
 
 Enjoy!
