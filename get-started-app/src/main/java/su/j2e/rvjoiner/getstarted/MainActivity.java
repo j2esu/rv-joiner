@@ -21,7 +21,7 @@ public class MainActivity extends AppCompatActivity {
 		rv.setLayoutManager(new LinearLayoutManager(this));
 
 		//construct a joiner
-		RvJoiner rvJoiner = new RvJoiner(true, false);
+		RvJoiner rvJoiner = new RvJoiner();
 		rvJoiner.add(new JoinableLayout(R.layout.header));
 		rvJoiner.add(new JoinableAdapter(new MyAdapter()));
 		rvJoiner.add(new JoinableLayout(R.layout.devider));
@@ -30,6 +30,5 @@ public class MainActivity extends AppCompatActivity {
 
 		//set join adapter to your RecyclerView
 		rv.setAdapter(rvJoiner.getAdapter());
-
 	}
 }
