@@ -7,7 +7,12 @@ import android.widget.TextView;
 
 public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyVh> {
 
-	private String[] data = {"First", "Second", "Third"};
+	private String[] data = new String[10];
+	{
+		for (int i = 0; i < data.length; i++) {
+			data[i] = "Item " + i;
+		}
+	}
 
 	@Override
 	public MyVh onCreateViewHolder(ViewGroup parent, int viewType) {

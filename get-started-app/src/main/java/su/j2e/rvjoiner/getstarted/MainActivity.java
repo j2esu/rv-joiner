@@ -22,7 +22,8 @@ public class MainActivity extends AppCompatActivity {
 
 		//construct a joiner
 		RvJoiner rvJoiner = new RvJoiner();
-		rvJoiner.add(new JoinableAdapter(new MyAdapter(), null));
+		rvJoiner.add(new JoinableLayout(R.layout.header));
+		rvJoiner.add(new JoinableAdapter(new MyAdapter()));
 		rvJoiner.add(new JoinableLayout(R.layout.footer));
 
 		//set join adapter to your RecyclerView
