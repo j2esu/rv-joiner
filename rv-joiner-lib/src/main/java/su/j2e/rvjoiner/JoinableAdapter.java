@@ -21,7 +21,6 @@ public class JoinableAdapter implements RvJoiner.Joinable {
 	 * 				{@link RecyclerView.Adapter#getItemViewType(int)},
 	 *              or you can pass no parameters null for simplicity if your adapter have single
 	 *              type and you have NOT overrode {@link RecyclerView.Adapter#getItemViewType(int)}
-	 * @throws IllegalArgumentException if types array is empty
 	 */
 	public JoinableAdapter(@NonNull RecyclerView.Adapter adapter, @Nullable int... types) {
 		mTypes = (types != null && types.length > 0 ? types : new int[] {0});
@@ -35,7 +34,7 @@ public class JoinableAdapter implements RvJoiner.Joinable {
 	public JoinableAdapter(@NonNull RecyclerView.Adapter adapter, boolean hasStableIds,
 						   @Nullable int... types) {
 		this(adapter, types);
-		//setting this can cause IllegalStateException, so we shouldn't call it if redundant
+		//setting this can cause IllegalStateException, so we shouldn't call it if it's redundant
 		if (adapter.hasStableIds() != hasStableIds) {
 			adapter.setHasStableIds(hasStableIds);
 		}
