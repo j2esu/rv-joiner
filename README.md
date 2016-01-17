@@ -18,17 +18,13 @@ Get started app [source code](get-started-app)
 Configure dependencies in you <b>module</b> build.gradle file. [Example](get-started-app/build.gradle)
 
 <pre><code>
-repositories {
-    maven {
-        url 'https://dl.bintray.com/j2esu/maven/'
-    }
-}
-
 dependencies {
     //your other dependencies
     compile 'su.j2e:rv-joiner:1.0.3'//latest version by now
 }
 </code></pre>
+
+<b>NOTE:</b> You need to use <b>jCenter</b> repositiory to do this ([example](build.gradle)).
 
 See [releases](../../releases) for new versions.
 
@@ -95,7 +91,7 @@ returns <b>JOINED</b> position and <b>JOINED</b> type. I've named joined values 
 
 ### Supporting stable ids
 
-If you want to setHasStableIds(true) in your adapter, do this in constructor of your adapter, or use JoinableAdapter constructor to achieve this. If you set it in other time, you will get an error, because RvJoiner adds data observers to your adapter.
+If you want to [setHasStableIds(true)](http://developer.android.com/reference/android/support/v7/widget/RecyclerView.Adapter.html#setHasStableIds(boolean)) in your adapter, do this in constructor of your adapter, or use JoinableAdapter constructor to achieve this. If you set it in other time, you will get an error, because RvJoiner adds data observers to your adapter.
 
 Also don't forget to set has stable ids for joined adapter in RvJoiner constructor (it's the only way to do this). And the last thing: don't forget to support stable ids in all joined adapters (otherwise, unpredictable behaviour can occurs).
 
