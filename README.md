@@ -20,7 +20,7 @@ Configure dependencies in you <b>module</b> build.gradle file. [Example](get-sta
 <pre><code>
 dependencies {
     //your other dependencies
-    compile 'su.j2e:rv-joiner:1.0.4'//latest version by now
+    compile 'su.j2e:rv-joiner:1.0.5'//latest version by now
 }
 </code></pre>
 
