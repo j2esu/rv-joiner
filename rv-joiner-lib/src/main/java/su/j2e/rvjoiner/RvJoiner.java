@@ -446,8 +446,7 @@ public class RvJoiner {
 
 		@Override
 		public void onChanged() {
-			//update only items in correspond adapter
-			onItemRangeChanged(0, mJoinable.getAdapter().getItemCount());
+			mHostAdapter.notifyDataSetChanged();//can't detect what happens with items, update all list
 		}
 
 		@Override
