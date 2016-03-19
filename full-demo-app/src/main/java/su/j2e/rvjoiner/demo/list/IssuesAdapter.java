@@ -111,7 +111,6 @@ public class IssuesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 			itemView.setOnClickListener(new View.OnClickListener() {
 				@Override
 				public void onClick(View v) {
-					Log.d(TAG, "onClick: id " + getItemId());
 					onTaskItemClick(realPositionProvider.getRealPosition(getAdapterPosition()));
 				}
 			});
