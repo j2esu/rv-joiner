@@ -72,6 +72,14 @@ public class JoinableLayout implements RvJoiner.Joinable {
 		this(layoutResId, 0, null, RecyclerView.NO_ID);
 	}
 
+	public boolean isVisible() {
+		return mAdapter.isVisible();
+	}
+
+	public void setVisible(boolean visible) {
+		mAdapter.setVisible(visible);
+	}
+
 	@Override
 	public RecyclerView.Adapter getAdapter() {
 		return mAdapter;
@@ -93,6 +101,7 @@ public class JoinableLayout implements RvJoiner.Joinable {
 		private int mItemType;
 		private long mStableId;
 		private Callback mCallback;
+		private boolean mVisible = true;
 
 		//pass stableId == RecyclerView.NO_ID if stable ids not used
 		private Adapter(int layoutResId, int itemType, Callback callback, long stableId) {
@@ -114,11 +123,11 @@ public class JoinableLayout implements RvJoiner.Joinable {
 		}
 
 		@Override
-		public void onBindViewHolder(LayoutVh holder, int position) {}//no binding needed
+		public void onBindViewHolder(LayoutVh holder, int position) {}
 
 		@Override
 		public int getItemCount() {
-			return 1;
+			return mVisible ? 1 : 0;
 		}
 
 		@Override
@@ -129,6 +138,20 @@ public class JoinableLayout implements RvJoiner.Joinable {
 		@Override
 		public int getItemViewType(int position) {
 			return mItemType;
+		}
+
+		public boolean isVisible() {
+			return mVisible;
+		}
+
+		public void setVisible(boolean visible) {
+			if (mVisible && !visible) {
+				mVisible = false;
+				notifyItemRemoved(0);
+			} else if (!mVisible && visible) {
+				mVisible = true;
+				notifyItemInserted(0);
+			}
 		}
 
 		protected static class LayoutVh extends RecyclerView.ViewHolder {
