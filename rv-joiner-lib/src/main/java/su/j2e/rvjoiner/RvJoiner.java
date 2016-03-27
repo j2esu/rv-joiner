@@ -221,8 +221,12 @@ public class RvJoiner {
 		 * Will return the same value if no joiner were passed to constructor
 		 */
 		public int getRealPosition(int joinedPosition) {
-			return mRvJoiner == null ? joinedPosition :
-					mRvJoiner.getPositionInfo(joinedPosition).realPosition;
+			if (mRvJoiner == null) {
+				return joinedPosition;
+			} else {
+				PositionInfo positionInfo = mRvJoiner.getPositionInfo(joinedPosition);
+				return positionInfo != null ? positionInfo.realPosition : RecyclerView.NO_POSITION;
+			}
 		}
 
 	}
