@@ -15,8 +15,12 @@ public class JoinableLayout implements RvJoiner.Joinable {
 	public interface Callback {
 
 		/**
-		 * Runs after layout was inflated. You can use it to perform extra initialization,
-		 * such as, for ex. setting onClick listener.
+		 * Runs after layout was inflated (ViewHolder created). You can use it to perform extra
+         * initialization, such as, for ex. setting onClick listener. NOTE: if you're using this
+         * method to save links to child views for later changing values (for example, text in
+         * TextView), you should be aware of RecyclerView behavior - it can recycle your layout
+         * and recreate it later, and all your changes will be lost, so ensure you also bind your
+         * current data in onInflateComplete callback.
 		 * @param view just inflated view
 		 * @param parent view parent
 		 */

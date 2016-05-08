@@ -3,7 +3,7 @@ apply plugin: 'com.android.library'
 ext {
     PUBLISH_GROUP_ID = 'su.j2e'
     PUBLISH_ARTIFACT_ID = 'rv-joiner'
-    PUBLISH_VERSION = '1.0.7'
+    PUBLISH_VERSION = '1.0.8'
 }
 
 android {
@@ -27,8 +27,9 @@ android {
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     testCompile 'junit:junit:4.12'
-    compile 'com.android.support:appcompat-v7:23.2.1'
-    compile 'com.android.support:recyclerview-v7:23.2.1'
+    compile 'com.android.support:appcompat-v7:23.3.0'
+    compile 'com.android.support:recyclerview-v7:23.3.0'
 }
 
-apply from: 'android-release-aar.gradle'
+//gradlew :rv-joiner-lib:clean :rv-joiner-lib:build :rv-joiner-lib:generateRelease
+apply from: 'https://raw.githubusercontent.com/j2esu/release-android-library/master/android-release-aar.gradle'
